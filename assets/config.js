@@ -13,7 +13,7 @@ window.RESTAURANT_SYSTEM = {
 
   clientApiUrl: 'https://script.google.com/macros/s/AKfycbz3trsuRc4F-AolagUeX3O4Ildr83YoJnPOxhdLYNvJgN1mTYOxVv7DGCifm-SGJ34NaA/exec',
   adminApiUrl: 'https://script.google.com/macros/s/AKfycbwnIrpJ618l_esUejx5JpLTO50mt8yjGKLksU0q2xNrIEfP8YmyJExRTBf5od0_ZeC7/exec',
-  deliveryApiUrl: 'PASTE_DELIVERY_TRACKING_API_WEB_APP_URL_HERE',
+  deliveryApiUrl: 'https://script.google.com/macros/s/AKfycbw4LhlOWZ1oK0UnuhRTCwd7ce2cEXw_DpiSru2Oaq29A6_qklb6xABv1fsLzuhxHjO-8w/exec',
 
   trackingPage: 'tracking.html',
   deliveryPage: 'delivery.html',
