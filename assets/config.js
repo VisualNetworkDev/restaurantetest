@@ -12,7 +12,7 @@ window.RESTAURANT_SYSTEM = {
   locationUpdateSeconds: 30,
 
   clientApiUrl: 'https://script.google.com/macros/s/AKfycbz3trsuRc4F-AolagUeX3O4Ildr83YoJnPOxhdLYNvJgN1mTYOxVv7DGCifm-SGJ34NaA/exec',
-  adminApiUrl: 'PASTE_ADMIN_API_WEB_APP_URL_HERE',
+  adminApiUrl: 'https://script.google.com/macros/s/AKfycbwnIrpJ618l_esUejx5JpLTO50mt8yjGKLksU0q2xNrIEfP8YmyJExRTBf5od0_ZeC7/exec',
   deliveryApiUrl: 'PASTE_DELIVERY_TRACKING_API_WEB_APP_URL_HERE',
 
   trackingPage: 'tracking.html',
