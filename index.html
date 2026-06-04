@@ -1,264 +1,44 @@
 <!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Restaurante Test</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/restaurant.css">
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
-</head>
-<body>
-  <div class="topbar">
-    <div class="container nav">
-      <a class="brand" href="#home"><span class="brand-mark">🍽️</span><span id="brandName">Restaurante Test</span></a>
-      <div class="navlinks">
-        <a href="#menu">Menú</a><a href="#promos">Descuentos</a><a href="#about">Acerca</a><a href="#testimonials">Testimonios</a><a href="#contact">Contacto</a>
-      </div>
-      <button class="btn secondary" onclick="openCart()">Carrito <span id="cartCount">0</span></button>
-    </div>
-  </div>
-
-  <header id="home" class="hero">
-    <div class="container hero-inner">
-      <div>
-        <span class="pill">🔥 Órdenes online · Pickup · Delivery</span>
-        <h1 id="heroTitle">Comida fresca con sabor real.</h1>
-        <p id="heroText">Explora el menú, agrega tus favoritos al carrito y recibe tu orden con seguimiento en tiempo real si eliges delivery.</p>
-        <div class="hero-actions">
-          <a class="btn" href="#menu">Ordenar ahora</a>
-          <a class="btn secondary" href="#promos">Ver promociones</a>
-        </div>
-      </div>
-      <div class="order-widget">
-        <h3>Ordena en minutos</h3>
-        <p class="section-sub">Pickup con QR seguro o delivery con tracking en mapa.</p>
-        <div class="mini-stat">
-          <div><b id="pickupBadge">Sí</b><span>Pickup</span></div>
-          <div><b id="deliveryBadge">Sí</b><span>Delivery</span></div>
-          <div><b id="feeBadge">$0</b><span>Delivery fee</span></div>
-        </div>
-        <button class="btn dark" style="width:100%;margin-top:18px" onclick="document.getElementById('menu').scrollIntoView()">Ver menú</button>
-      </div>
-    </div>
-  </header>
-
-  <main>
-    <section id="promos" class="section">
-      <div class="container">
-        <h2 class="section-title">Promociones y descuentos</h2>
-        <p class="section-sub">Ofertas activas del restaurante. Si hay código disponible, podrás aplicarlo en el carrito.</p>
-        <div id="promosGrid" class="grid grid-3" style="margin-top:26px"></div>
-      </div>
-    </section>
-
-    <section id="menu" class="section">
-      <div class="container">
-        <h2 class="section-title">Menú del restaurante</h2>
-        <p class="section-sub">Fotos, categorías y precios cargados desde Google Sheets.</p>
-        <div class="menu-toolbar">
-          <div id="categoryTabs" class="tabs"></div>
-          <div class="field" style="max-width:260px"><input id="searchMenu" placeholder="Buscar comida..." oninput="renderMenu()"></div>
-        </div>
-        <div id="menuGrid" class="menu-grid"></div>
-      </div>
-    </section>
-
-    <section id="about" class="section">
-      <div class="container grid grid-2">
-        <div>
-          <h2 class="section-title">Acerca del restaurante</h2>
-          <p id="aboutText" class="section-sub">Restaurante local con órdenes para pickup y delivery.</p>
-          <div style="margin-top:22px;display:flex;gap:12px;flex-wrap:wrap">
-            <a id="mapsLink" class="btn ghost" target="_blank">Ver dirección</a>
-            <a id="instagramLink" class="btn ghost" target="_blank" style="display:none">Instagram</a>
-          </div>
-        </div>
-        <div class="card" style="padding:24px">
-          <h3>Información</h3>
-          <p><b>Teléfono:</b> <span id="phoneText"></span></p>
-          <p><b>Dirección:</b> <span id="addressText"></span></p>
-          <p><b>Tax:</b> <span id="taxText"></span></p>
-        </div>
-      </div>
-    </section>
-
-    <section id="testimonials" class="section">
-      <div class="container">
-        <h2 class="section-title">Lo que dicen los clientes</h2>
-        <div id="testimonialsGrid" class="grid grid-3" style="margin-top:26px"></div>
-      </div>
-    </section>
-
-    <section id="contact" class="section">
-      <div class="container grid grid-2">
-        <div>
-          <h2 class="section-title">Contáctame</h2>
-          <p class="section-sub">Preguntas, eventos, catering o ayuda con una orden. Envía un mensaje directo al restaurante.</p>
-        </div>
-        <form class="contact-card card" onsubmit="sendContact(event)">
-          <label class="field"><span>Nombre</span><input id="contactName" required></label>
-          <label class="field"><span>Correo</span><input id="contactEmail" type="email" required></label>
-          <label class="field"><span>Teléfono</span><input id="contactPhone"></label>
-          <label class="field"><span>Mensaje</span><textarea id="contactMessage" rows="4" required></textarea></label>
-          <button class="btn" type="submit">Enviar mensaje</button>
-        </form>
-      </div>
-    </section>
-  </main>
-
-  <footer class="footer">
-    <div class="container footer-grid">
-      <div><div class="brand"><span class="brand-mark">🍽️</span><span id="footerBrand">Restaurante Test</span></div><p>Ordena online con recibos profesionales, QR pickup y tracking delivery.</p></div>
-      <div><b>Secciones</b><p><a href="#menu">Menú</a></p><p><a href="#promos">Descuentos</a></p></div>
-      <div><b>Contacto</b><p id="footerPhone"></p><p id="footerAddress"></p></div>
-    </div>
-  </footer>
-
-  <button class="cart-fab" onclick="openCart()">🛒 Carrito · <span id="cartFabCount">0</span></button>
-
-  <aside id="cartDrawer" class="drawer">
-    <div class="drawer-backdrop" onclick="closeCart()"></div>
-    <div class="drawer-panel">
-      <div class="drawer-head"><h2>Tu orden</h2><button class="btn ghost" onclick="closeCart()">Cerrar</button></div>
-      <div id="cartLines"></div>
-      <div class="split">
-        <label class="field"><span>Tipo de orden</span><select id="orderType" onchange="renderCart()"><option value="pickup">Pickup</option><option value="delivery">Delivery</option></select></label>
-        <label class="field"><span>Propina</span><input id="tip" type="number" min="0" step="0.01" value="0" oninput="renderCart()"></label>
-      </div>
-      <label class="field"><span>Código de descuento</span><input id="coupon" placeholder="Ej: WELCOME10" oninput="renderCart()"></label>
-      <div id="deliveryFields">
-        <label class="field"><span>Dirección de entrega</span><input id="address" placeholder="Street, city, state" oninput="renderCart()"></label>
-        <label class="field"><span>Instrucciones para delivery</span><textarea id="deliveryInstructions" rows="2"></textarea></label>
-      </div>
-      <div class="split">
-        <label class="field"><span>Nombre</span><input id="customerName" required></label>
-        <label class="field"><span>Teléfono</span><input id="customerPhone" required></label>
-      </div>
-      <label class="field"><span>Correo</span><input id="customerEmail" type="email" required></label>
-      <label class="field"><span>Método de pago</span><select id="paymentMethod"></select></label>
-      <label class="field"><span>Notas de la orden</span><textarea id="customerNotes" rows="2"></textarea></label>
-      <div class="totals" id="totalsBox"></div>
-      <label style="display:flex;gap:10px;align-items:flex-start;margin:12px 0"><input type="checkbox" id="agreementCheck"> <span>Acepto los términos de la orden. <a href="#" onclick="openAgreement(event)" style="color:var(--brand);font-weight:900">Leer acuerdo</a></span></label>
-      <button class="btn" style="width:100%" onclick="submitOrder()">Enviar orden</button>
-      <div id="orderResult" style="margin-top:18px"></div>
-    </div>
-  </aside>
-
-  <div id="agreementModal" class="modal">
-    <div class="modal-card">
-      <h2>Acuerdo de orden</h2>
-      <p id="agreementText"></p>
-      <p>Al continuar aceptas que los precios, tiempos estimados y disponibilidad pueden cambiar según operación del restaurante. Para delivery, aceptas recibir tracking de estado y ubicación del repartidor mientras la orden esté en camino.</p>
-      <div style="display:flex;gap:12px;justify-content:flex-end"><button class="btn ghost" onclick="closeAgreement()">Cerrar</button><button class="btn" onclick="acceptAgreement()">Aceptar</button></div>
-    </div>
-  </div>
-
-  <div id="toast" class="toast"></div>
-
+  <title>Restaurant Test</title>
+  <link rel="preconnect" href="https://images.unsplash.com">
+  <script src="assets/config.js"></script>
+  <style>
+    :root{--ink:#19130e;--muted:#75685b;--paper:#fffaf2;--panel:#fff;--line:#eadfce;--accent:#f5a623;--accent2:#e85d04;--dark:#15100c;--green:#4f7d39;--danger:#b42318;--shadow:0 24px 80px rgba(36,20,6,.16);--radius:28px}*{box-sizing:border-box}body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:radial-gradient(circle at top left,#fff2d7,transparent 34%),var(--paper)}button,input,textarea,select{font:inherit}button{cursor:pointer}img{max-width:100%;display:block}.shell{width:min(1220px,calc(100% - 28px));margin:auto}.topbar{position:sticky;top:0;z-index:50;background:rgba(255,250,242,.78);backdrop-filter:blur(18px);border-bottom:1px solid rgba(234,223,206,.75)}.topbar-inner{min-height:76px;display:flex;align-items:center;justify-content:space-between;gap:16px}.brand{display:flex;align-items:center;gap:12px;font-weight:950;color:var(--dark);text-decoration:none}.brand-mark{width:44px;height:44px;border-radius:16px;display:grid;place-items:center;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 15px 40px rgba(232,93,4,.26)}.brand small{display:block;color:var(--muted);font-weight:800}.nav-pills{display:flex;gap:8px;overflow:auto;scrollbar-width:none}.nav-pills::-webkit-scrollbar{display:none}.nav-pills button{border:1px solid var(--line);background:rgba(255,255,255,.72);border-radius:999px;padding:11px 16px;font-weight:900;color:var(--muted);white-space:nowrap}.nav-pills button.active{background:var(--dark);color:#fff;border-color:var(--dark);box-shadow:0 12px 32px rgba(21,16,12,.18)}.hero{padding:38px 0 22px}.hero-card{min-height:520px;border:1px solid rgba(255,255,255,.55);border-radius:42px;overflow:hidden;display:grid;grid-template-columns:1.08fr .92fr;background:var(--dark);box-shadow:var(--shadow)}.hero-copy{padding:54px;color:#fff;display:flex;flex-direction:column;justify-content:center}.eyebrow{color:#ffc36d;text-transform:uppercase;letter-spacing:.16em;font-size:13px;font-weight:950}.hero h1{font-family:Georgia,serif;font-size:clamp(48px,8vw,94px);line-height:.92;margin:14px 0}.hero p{font-size:18px;line-height:1.7;color:#f3e4d2;max-width:590px}.hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}.btn{border:0;border-radius:999px;background:var(--accent);color:#21150a;font-weight:950;padding:14px 20px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px}.btn.dark{background:var(--dark);color:#fff}.btn.light{background:#fff;color:var(--dark)}.btn.ghost{background:transparent;color:var(--dark);border:1px solid var(--line)}.hero-visual{position:relative;min-height:520px;background:url('https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1600&q=84') center/cover}.floating-receipt{position:absolute;right:24px;bottom:24px;width:min(320px,calc(100% - 48px));background:rgba(255,255,255,.9);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.7);border-radius:28px;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.26)}.floating-receipt strong{font-size:22px}.app-layout{display:grid;grid-template-columns:minmax(0,1fr) 390px;gap:20px;align-items:start;padding:18px 0 54px}.workspace{min-height:620px;border:1px solid var(--line);border-radius:36px;background:rgba(255,255,255,.72);box-shadow:0 18px 50px rgba(36,20,6,.08);overflow:hidden}.view{display:none;padding:24px}.view.active{display:block;animation:rise .38s ease both}@keyframes rise{from{opacity:0;transform:translateY(16px) scale(.99)}to{opacity:1;transform:none}}.section-head{display:flex;justify-content:space-between;gap:16px;align-items:end;margin-bottom:18px}.section-head h2{font-size:clamp(30px,4vw,52px);line-height:.98;margin:0;font-family:Georgia,serif}.muted{color:var(--muted)}.category-tabs{display:flex;gap:10px;overflow:auto;margin:10px 0 20px}.category-tabs button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:11px 15px;font-weight:950;color:var(--muted);white-space:nowrap}.category-tabs button.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:transparent}.menu-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.food-card{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:30px;background:#fff;box-shadow:0 16px 36px rgba(36,20,6,.08);transform:translateZ(0);transition:.28s ease}.food-card:hover{transform:translateY(-6px);box-shadow:0 28px 70px rgba(36,20,6,.18)}.food-img{height:220px;overflow:hidden;background:#efe3d0}.food-img img{width:100%;height:100%;object-fit:cover;transition:transform .7s cubic-bezier(.2,.8,.2,1),filter .4s}.food-card:hover img{transform:scale(1.11) rotate(.7deg);filter:saturate(1.15) contrast(1.03)}.food-body{padding:18px}.food-title{display:flex;justify-content:space-between;gap:12px;align-items:start}.food-title h3{margin:0;font-size:20px}.price{font-weight:1000;color:var(--accent2);font-size:20px}.food-body p{color:var(--muted);line-height:1.55;min-height:50px}.add-row{display:flex;gap:10px;align-items:center}.qty{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:#fff}.qty button{border:0;background:#fff;width:36px;font-weight:1000}.qty span{min-width:34px;display:grid;place-items:center;font-weight:900}.cart-panel{position:sticky;top:94px;border:1px solid var(--line);border-radius:36px;background:#fff;box-shadow:var(--shadow);padding:18px;max-height:calc(100vh - 112px);overflow:auto}.cart-panel h2{margin:0 0 12px;font-family:Georgia,serif;font-size:32px}.cart-empty{padding:22px;border:1px dashed var(--line);border-radius:24px;color:var(--muted);text-align:center}.cart-item{display:grid;grid-template-columns:1fr auto;gap:10px;border-bottom:1px solid var(--line);padding:12px 0}.totals{margin-top:14px;background:#fff8ee;border:1px solid var(--line);border-radius:24px;padding:14px}.total-line{display:flex;justify-content:space-between;margin:7px 0}.total-line.grand{font-size:24px;font-weight:1000;color:var(--dark)}.checkout-card{display:grid;gap:10px;margin-top:14px}input,select,textarea{width:100%;border:1px solid var(--line);border-radius:18px;background:#fff;padding:13px 14px;outline:none}textarea{min-height:86px;resize:vertical}input:focus,select:focus,textarea:focus{box-shadow:0 0 0 5px rgba(245,166,35,.16);border-color:var(--accent)}.order-type{display:grid;grid-template-columns:1fr 1fr;gap:8px}.order-type button{border:1px solid var(--line);border-radius:18px;background:#fff;padding:13px;font-weight:950}.order-type button.active{background:var(--dark);color:#fff}.promo-grid,.story-grid,.info-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.tile{border:1px solid var(--line);border-radius:30px;background:#fff;padding:20px;box-shadow:0 16px 36px rgba(36,20,6,.07)}.tile.hero-tile{min-height:210px;background:linear-gradient(135deg,#21150a,#6a2e05);color:#fff}.tile h3{font-size:22px;margin:0 0 10px}.gallery-strip{display:grid;grid-template-columns:1.3fr .7fr;gap:16px}.gallery-main,.gallery-side{border-radius:36px;overflow:hidden;min-height:360px;background:#ddd;position:relative}.gallery-side{display:grid;gap:16px;background:transparent}.gallery-side div{border-radius:28px;overflow:hidden;position:relative}.gallery-strip img{width:100%;height:100%;object-fit:cover;transition:.7s ease}.gallery-strip img:hover{transform:scale(1.08)}.modal{position:fixed;inset:0;background:rgba(21,16,12,.62);display:none;z-index:100;place-items:center;padding:18px}.modal.open{display:grid}.modal-card{width:min(680px,100%);background:#fff;border-radius:34px;padding:24px;box-shadow:0 30px 90px rgba(0,0,0,.35)}.receipt{background:#fff;border:1px solid var(--line);border-radius:30px;padding:22px;margin-top:18px}.receipt-head{background:var(--dark);color:#fff;border-radius:24px;padding:22px;margin-bottom:18px}.qr-img{width:180px;height:180px;border:1px solid var(--line);border-radius:24px;padding:10px;background:#fff}.footer-license{padding:34px 0 52px;color:#7d6f61;text-align:center}.footer-license strong{color:var(--dark)}@media(max-width:980px){.hero-card,.app-layout{grid-template-columns:1fr}.cart-panel{position:relative;top:auto;max-height:none}.menu-grid,.promo-grid,.story-grid,.info-grid{grid-template-columns:1fr}.hero-copy{padding:34px}.hero-visual{min-height:360px}.gallery-strip{grid-template-columns:1fr}.nav-pills{max-width:100%}}
+  </style>
+</head><body>
+  <header class="topbar"><div class="shell topbar-inner"><a class="brand" href="#"><span class="brand-mark">RT</span><span><span id="brandName">Restaurant Test</span><small>Ordering & delivery</small></span></a><nav class="nav-pills" id="navPills"><button class="active" data-view="menu">Menu</button><button data-view="offers">Offers</button><button data-view="stories">Stories</button><button data-view="visit">Visit</button><button data-view="about">About</button></nav></div></header>
+  <main><section class="hero"><div class="shell hero-card"><div class="hero-copy"><div class="eyebrow">Modern restaurant ordering</div><h1 id="heroTitle">Order fresh. Track fast.</h1><p id="heroText">Browse the menu, choose pickup or delivery, receive a professional receipt, and track your driver when the order is on the way.</p><div class="hero-actions"><button class="btn" onclick="showView('menu')">Start order</button><button class="btn light" onclick="showView('offers')">View offers</button></div></div><div class="hero-visual" id="heroVisual"><div class="floating-receipt"><span class="muted">Today’s flow</span><br><strong>Pickup QR + Live Delivery Tracking</strong><p class="muted">A clean receipt, secure pickup token, and GPS delivery status when available.</p></div></div></div></section>
+    <section class="shell app-layout"><div class="workspace">
+      <section class="view active" id="view-menu"><div class="section-head"><div><h2>Interactive menu</h2><p class="muted">Choose a category. Product photos animate when customers explore the menu.</p></div></div><div class="category-tabs" id="categoryTabs"></div><div class="menu-grid" id="menuGrid"></div></section>
+      <section class="view" id="view-offers"><div class="section-head"><div><h2>Offers & discounts</h2><p class="muted">Active promotions from the restaurant.</p></div></div><div class="promo-grid" id="promoGrid"></div></section>
+      <section class="view" id="view-stories"><div class="section-head"><div><h2>Guest stories</h2><p class="muted">Testimonials and social proof.</p></div></div><div class="story-grid" id="testimonialGrid"></div></section>
+      <section class="view" id="view-visit"><div class="section-head"><div><h2>Visit & contact</h2><p class="muted">Address, contact info, and Instagram if configured.</p></div></div><div class="info-grid"><div class="tile"><h3>Address</h3><p id="addressText" class="muted">Loading...</p></div><div class="tile"><h3>Contact</h3><p id="contactText" class="muted">Loading...</p></div><div class="tile"><h3>Instagram</h3><p id="instagramText" class="muted">Not configured yet.</p></div></div></section>
+      <section class="view" id="view-about"><div class="section-head"><div><h2>About the kitchen</h2><p class="muted">A modern ordering page that does not feel like a burned-out one-page website.</p></div></div><div class="gallery-strip"><div class="gallery-main"><img src="https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1400&q=82" alt="Restaurant food"></div><div class="gallery-side"><div><img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=900&q=82" alt="Restaurant"></div><div><img src="https://images.unsplash.com/photo-1551218808-94e220e084d2?auto=format&fit=crop&w=900&q=82" alt="Chef"></div></div></div></section>
+    </div><aside class="cart-panel"><h2>Your cart</h2><div id="cartList" class="cart-empty">Your cart is empty.</div><div class="totals" id="totals"></div><div class="checkout-card"><div class="order-type"><button id="pickupBtn" class="active" onclick="setOrderType('pickup')">Pickup</button><button id="deliveryBtn" onclick="setOrderType('delivery')">Delivery</button></div><input id="customerName" placeholder="Full name"><input id="customerPhone" placeholder="Phone"><input id="customerEmail" placeholder="Email"><textarea id="deliveryAddress" placeholder="Delivery address" hidden></textarea><textarea id="customerNotes" placeholder="Order notes"></textarea><input id="couponCode" placeholder="Coupon code"><button class="btn dark" onclick="openAgreement()">Review & place order</button><div id="receiptHost"></div></div></aside></section></main>
+  <div class="modal" id="agreementModal"><div class="modal-card"><h2>Order agreement</h2><p id="agreementText" class="muted"></p><label style="display:flex;gap:10px;align-items:center;margin:18px 0;font-weight:900"><input type="checkbox" id="agreeCheck" style="width:20px"> I accept the order agreement.</label><div style="display:flex;gap:10px;justify-content:flex-end"><button class="btn ghost" onclick="closeAgreement()">Cancel</button><button class="btn" onclick="submitOrder()">Place order</button></div></div></div>
+  <footer class="footer-license"><div class="shell"><strong id="licenseName">Restaurant Test Ordering System</strong><br>Licensed interface for <span id="licenseBusiness">Restaurant Test</span> · Powered by <span id="licenseBy">Visual Event Network</span></div></footer>
 <script>
-const API_URL = 'PASTE_APPS_SCRIPT_WEB_APP_URL_HERE';
-const state = {config:{}, menu:{categories:[],products:[]}, promos:[], testimonials:[], cart:[], activeCategory:'Todos', currency:'$'};
-
-function apiRequest(api, action, payload={}){
-  return new Promise((resolve,reject)=>{
-    const cb='cb_'+Date.now()+'_'+Math.random().toString(36).slice(2);
-    window[cb]=(res)=>{delete window[cb]; script.remove(); resolve(res)};
-    const script=document.createElement('script');
-    const url=API_URL+'?api='+encodeURIComponent(api)+'&action='+encodeURIComponent(action)+'&callback='+cb+'&payload='+encodeURIComponent(JSON.stringify(payload));
-    script.src=url; script.onerror=()=>{delete window[cb]; reject(new Error('No se pudo conectar con el API'))};
-    document.body.appendChild(script);
-  });
-}
-function money(n){return (Number(n||0)).toFixed(2)}
-function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600)}
-function esc(s){return String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
-
-async function init(){
-  if(API_URL.includes('PASTE_')) toast('Configura API_URL en index.html');
-  const res=await apiRequest('client','getPublicBootstrap',{});
-  if(!res.success){toast(res.message);return}
-  state.config=res.data.config||{}; state.menu=res.data.menu||state.menu; state.promos=res.data.promotions||[]; state.testimonials=res.data.testimonials||[]; state.payments=res.data.payments||[]; state.currency=state.config.Currency||'$';
-  applyConfig(); renderPromos(); renderCategories(); renderMenu(); renderTestimonials(); renderPaymentMethods(); renderCart();
-}
-function applyConfig(){
-  const c=state.config;
-  document.title=c.RestaurantName||'Restaurante Test';
-  document.documentElement.style.setProperty('--hero-image',`url('${c.HeroImage||''}')`);
-  ['brandName','footerBrand'].forEach(id=>document.getElementById(id).textContent=c.RestaurantName||'Restaurante Test');
-  document.getElementById('heroTitle').textContent=c.RestaurantName?`Bienvenido a ${c.RestaurantName}`:'Comida fresca con sabor real.';
-  document.getElementById('heroText').textContent=c.RestaurantTagline||'Explora el menú y ordena online.';
-  document.getElementById('aboutText').textContent=c.AboutText||'';
-  document.getElementById('phoneText').textContent=c.RestaurantPhone||'No disponible';
-  document.getElementById('addressText').textContent=c.RestaurantAddress||'No disponible';
-  document.getElementById('footerPhone').textContent=c.RestaurantPhone||'';
-  document.getElementById('footerAddress').textContent=c.RestaurantAddress||'';
-  document.getElementById('taxText').textContent=((Number(c.TaxRate||0))*100).toFixed(2)+'%';
-  document.getElementById('pickupBadge').textContent=/sí|si|true|yes|1/i.test(c.PickupEnabled||'')?'Sí':'No';
-  document.getElementById('deliveryBadge').textContent=/sí|si|true|yes|1/i.test(c.DeliveryEnabled||'')?'Sí':'No';
-  document.getElementById('feeBadge').textContent=state.currency+money(c.DeliveryFee||0);
-  document.getElementById('agreementText').textContent=c.AgreementText||'';
-  const maps=document.getElementById('mapsLink'); maps.href='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(c.RestaurantAddress||'restaurant');
-  const ig=document.getElementById('instagramLink'); if(c.InstagramURL){ig.href=c.InstagramURL;ig.style.display='inline-flex'}
-}
-function renderPromos(){
-  const grid=document.getElementById('promosGrid');
-  if(!state.promos.length){grid.innerHTML='<div class="empty">No hay promociones activas ahora mismo.</div>';return}
-  grid.innerHTML=state.promos.map(p=>`<article class="promo-card card"><span class="pill" style="color:var(--brand);background:#fff8ef;border-color:var(--line)">Oferta</span><h3>${esc(p.Titulo)}</h3><p class="section-sub">${esc(p.Descripcion)}</p>${p.Codigo?`<span class="promo-code">${esc(p.Codigo)}</span>`:''}</article>`).join('');
-}
-function renderCategories(){
-  const cats=['Todos',...(state.menu.categories||[])];
-  document.getElementById('categoryTabs').innerHTML=cats.map(c=>`<button class="tab ${state.activeCategory===c?'active':''}" onclick="state.activeCategory='${esc(c)}';renderCategories();renderMenu()">${esc(c)}</button>`).join('')
-}
-function renderMenu(){
-  const q=(document.getElementById('searchMenu')?.value||'').toLowerCase();
-  let products=state.menu.products||[];
-  if(state.activeCategory!=='Todos') products=products.filter(p=>p.category===state.activeCategory);
-  if(q) products=products.filter(p=>(p.name+' '+p.description+' '+p.category).toLowerCase().includes(q));
-  document.getElementById('menuGrid').innerHTML=products.map(p=>`<article class="menu-item card"><div class="menu-img" style="background-image:url('${esc(p.image)}')"></div><div class="menu-body"><h3>${esc(p.name)}</h3><p>${esc(p.description)}</p><div class="price-row"><span class="price">${state.currency}${money(p.price)}</span><button class="btn" onclick="addToCart('${esc(p.id)}')">Agregar</button></div></div></article>`).join('')||'<div class="empty">No hay productos en esta categoría.</div>';
-}
-function renderTestimonials(){
-  const grid=document.getElementById('testimonialsGrid');
-  grid.innerHTML=(state.testimonials||[]).map(t=>`<article class="testimonial card"><div class="stars">${'★'.repeat(Number(t.Rating||5))}</div><p>${esc(t.Comentario)}</p><b>${esc(t.Nombre)}</b></article>`).join('')||'<div class="empty">Próximamente testimonios.</div>';
-}
-function renderPaymentMethods(){
-  const sel=document.getElementById('paymentMethod');
-  const payments=(state.payments||[]).length?state.payments:[{provider:'Pago pendiente'}];
-  sel.innerHTML=payments.map(p=>`<option value="${esc(p.provider)}">${esc(p.provider)}</option>`).join('')
-}
-function addToCart(id){const p=(state.menu.products||[]).find(x=>x.id===id); if(!p)return; const line=state.cart.find(x=>x.id===id); if(line)line.quantity++; else state.cart.push({id:p.id,name:p.name,price:p.price,quantity:1,notes:''}); renderCart(); toast('Agregado al carrito')}
-function changeQty(id,delta){const l=state.cart.find(x=>x.id===id); if(!l)return; l.quantity+=delta; if(l.quantity<=0)state.cart=state.cart.filter(x=>x.id!==id); renderCart()}
-function totals(){
-  const subtotal=state.cart.reduce((s,i)=>s+i.price*i.quantity,0); const code=(document.getElementById('coupon')?.value||'').toUpperCase();
-  let discount=0; const promo=(state.promos||[]).find(p=>String(p.Codigo||'').toUpperCase()===code);
-  if(promo){discount=String(promo.Tipo).toLowerCase()==='percent'?subtotal*(Number(promo.Valor||0)/100):Number(promo.Valor||0); discount=Math.min(subtotal,discount)}
-  const type=document.getElementById('orderType')?.value||'pickup'; const taxable=Math.max(0,subtotal-discount); const tax=taxable*Number(state.config.TaxRate||0); const delivery=type==='delivery'?Number(state.config.DeliveryFee||0):0; const tip=Number(document.getElementById('tip')?.value||0); return {subtotal,discount,tax,delivery,tip,total:taxable+tax+delivery+tip};
-}
-function renderCart(){
-  document.getElementById('cartCount').textContent=state.cart.reduce((s,i)=>s+i.quantity,0); document.getElementById('cartFabCount').textContent=document.getElementById('cartCount').textContent;
-  document.getElementById('cartLines').innerHTML=state.cart.map(i=>`<div class="cart-line"><div><b>${esc(i.name)}</b><br><small>${state.currency}${money(i.price)}</small></div><div class="qty"><button onclick="changeQty('${esc(i.id)}',-1)">−</button><b>${i.quantity}</b><button onclick="changeQty('${esc(i.id)}',1)">+</button></div></div>`).join('')||'<div class="empty">Tu carrito está vacío.</div>';
-  const type=document.getElementById('orderType')?.value||'pickup'; document.getElementById('deliveryFields').style.display=type==='delivery'?'block':'none';
-  const t=totals(); document.getElementById('totalsBox').innerHTML=`<div class="total-line"><span>Subtotal</span><b>${state.currency}${money(t.subtotal)}</b></div><div class="total-line"><span>Descuento</span><b>-${state.currency}${money(t.discount)}</b></div><div class="total-line"><span>Tax</span><b>${state.currency}${money(t.tax)}</b></div><div class="total-line"><span>Delivery</span><b>${state.currency}${money(t.delivery)}</b></div><div class="total-line"><span>Tip</span><b>${state.currency}${money(t.tip)}</b></div><div class="total-line grand"><span>Total</span><b>${state.currency}${money(t.total)}</b></div>`;
-}
-function openCart(){document.getElementById('cartDrawer').classList.add('open');renderCart()}
-function closeCart(){document.getElementById('cartDrawer').classList.remove('open')}
-function openAgreement(e){e.preventDefault();document.getElementById('agreementModal').classList.add('open')}
-function closeAgreement(){document.getElementById('agreementModal').classList.remove('open')}
-function acceptAgreement(){document.getElementById('agreementCheck').checked=true;closeAgreement()}
-async function submitOrder(){
-  if(!state.cart.length)return toast('Agrega productos primero'); if(!document.getElementById('agreementCheck').checked)return toast('Debes aceptar el acuerdo');
-  const type=document.getElementById('orderType').value; if(type==='delivery'&&!document.getElementById('address').value.trim())return toast('La dirección es obligatoria');
-  const payload={name:customerName.value,phone:customerPhone.value,email:customerEmail.value,orderType:type,address:address.value,deliveryInstructions:deliveryInstructions.value,items:state.cart,couponCode:coupon.value,tip:tip.value,paymentMethod:paymentMethod.value,notes:customerNotes.value};
-  const res=await apiRequest('client','createOrder',payload); if(!res.success){toast(res.message);return}
-  const d=res.data; state.cart=[]; renderCart(); toast('Orden enviada');
-  const qrDiv=d.pickupQrText?`<div class="qr-box"><div id="pickupQr"></div><p>Presenta este QR para recoger tu orden.</p></div>`:'';
-  document.getElementById('orderResult').innerHTML=`<div class="receipt"><div class="receipt-head"><h2>Orden recibida</h2><p>${esc(d.orderId)}</p></div><div class="receipt-body"><p><b>Estado:</b> ${esc(d.status)}</p><p><b>Total:</b> ${state.currency}${money(d.totals.total)}</p>${d.trackingUrl?`<a class="btn" href="${esc(d.trackingUrl)}" target="_blank">Abrir tracking</a>`:''}${qrDiv}</div></div>`;
-  if(d.pickupQrText&&window.QRCode){QRCode.toCanvas(document.createElement('canvas'),d.pickupQrText,{width:190},(err,canvas)=>{if(!err)document.getElementById('pickupQr').appendChild(canvas)})}
-}
-async function sendContact(e){e.preventDefault();const res=await apiRequest('client','contactMessage',{name:contactName.value,email:contactEmail.value,phone:contactPhone.value,message:contactMessage.value}); toast(res.message||'Mensaje enviado'); if(res.success)e.target.reset()}
-init().catch(err=>toast(err.message));
-</script>
-</body>
-</html>
+const CFG=window.RESTAURANT_SYSTEM||{};let state={config:null,menu:[],categories:[],category:'All',cart:[],orderType:'pickup',promos:[]};
+function api(action,payload={}){return new Promise((resolve,reject)=>{const cb='cb_'+Date.now()+'_'+Math.random().toString(36).slice(2);window[cb]=res=>{delete window[cb];res&&res.success?resolve(res.data):reject(new Error(res&&res.message||'API error'))};const url=(CFG.clientApiUrl||'')+'?action='+encodeURIComponent(action)+'&callback='+cb+'&payload='+encodeURIComponent(JSON.stringify(payload));const s=document.createElement('script');s.src=url;s.onerror=()=>reject(new Error('Could not reach client API'));document.body.appendChild(s);setTimeout(()=>s.remove(),30000)})}
+function money(n){return '$'+(Number(n)||0).toFixed(2)}function esc(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+async function init(){try{state.config=await api('getRestaurantConfig');const m=await api('getMenu');state.menu=m.items||[];state.categories=['All'].concat(m.categories||[]);state.promos=await api('getPromotions');const t=await api('getTestimonials');renderConfig();renderCats();renderMenu();renderPromos();renderTestimonials(t);renderCart()}catch(e){console.error(e);renderFallback()}}
+function renderConfig(){const c=state.config||{};brandName.textContent=c.name||'Restaurant Test';heroTitle.textContent=(c.name||'Restaurant Test')+'. Order beautifully.';heroText.textContent=c.tagline||heroText.textContent;if(c.heroImage)heroVisual.style.backgroundImage=`url('${c.heroImage}')`;addressText.textContent=c.address||'Address not configured yet.';contactText.innerHTML=`${esc(c.phone||'No phone yet')}<br>${esc(c.email||'No email yet')}`;instagramText.innerHTML=c.instagramUrl?`<a href="${esc(c.instagramUrl)}" target="_blank">Open Instagram</a>`:'Not configured yet.';agreementText.textContent=c.agreementText||'Please confirm your order information is correct.';licenseName.textContent=c.licenseName||'Restaurant Test Ordering System';licenseBusiness.textContent=c.name||'Restaurant Test';licenseBy.textContent=c.licenseBy||'Visual Event Network'}
+function renderFallback(){state.menu=[{id:'M001',category:'Signature Plates',name:'Grilled Chicken Bowl',description:'Fresh bowl with rice, salad and house sauce.',price:13.99,image:'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=1200&q=80'}];state.categories=['All','Signature Plates'];renderCats();renderMenu();renderCart()}
+function showView(name){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById('view-'+name).classList.add('active');document.querySelectorAll('#navPills button').forEach(b=>b.classList.toggle('active',b.dataset.view===name))}
+function renderCats(){categoryTabs.innerHTML=state.categories.map(c=>`<button class="${c===state.category?'active':''}" onclick="selectCat('${esc(c)}')">${esc(c)}</button>`).join('')}function selectCat(c){state.category=c;renderCats();renderMenu()}
+function renderMenu(){const items=state.menu.filter(i=>state.category==='All'||i.category===state.category);menuGrid.innerHTML=items.map(i=>`<article class="food-card"><div class="food-img"><img src="${esc(i.image||'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=1200&q=80')}" alt="${esc(i.name)}"></div><div class="food-body"><div class="food-title"><h3>${esc(i.name)}</h3><span class="price">${money(i.price)}</span></div><p>${esc(i.description)}</p><div class="add-row"><button class="btn" onclick="addItem('${esc(i.id)}')">Add to cart</button><span class="muted">${esc(i.category)}</span></div></div></article>`).join('')||'<div class="tile">No items in this category yet.</div>'}
+function renderPromos(){promoGrid.innerHTML=(state.promos||[]).map(p=>`<div class="tile hero-tile"><h3>${esc(p.title||p.code)}</h3><p>${esc(p.description||'')}</p><button class="btn light" onclick="couponCode.value='${esc(p.code)}'">Use ${esc(p.code)}</button></div>`).join('')||'<div class="tile">No active offers yet.</div>'}
+function renderTestimonials(t){testimonialGrid.innerHTML=(t||[]).map(x=>`<div class="tile"><h3>${'★'.repeat(Math.round(x.rating||5))}</h3><p>${esc(x.text)}</p><strong>${esc(x.name)}</strong></div>`).join('')||'<div class="tile">No testimonials yet.</div>'}
+function addItem(id){const item=state.menu.find(i=>i.id===id);if(!item)return;const row=state.cart.find(x=>x.id===id);row?row.qty++:state.cart.push({...item,qty:1});renderCart()}function changeQty(id,d){const row=state.cart.find(x=>x.id===id);if(!row)return;row.qty+=d;if(row.qty<=0)state.cart=state.cart.filter(x=>x.id!==id);renderCart()}
+function setOrderType(t){state.orderType=t;pickupBtn.classList.toggle('active',t==='pickup');deliveryBtn.classList.toggle('active',t==='delivery');deliveryAddress.hidden=t!=='delivery';renderCart()}
+function totals(){const subtotal=state.cart.reduce((s,i)=>s+i.price*i.qty,0);const tax=subtotal*((state.config&&Number(state.config.taxRate))||.07);const delivery=state.orderType==='delivery'?((state.config&&Number(state.config.deliveryFee))||0):0;return{subtotal,tax,delivery,total:subtotal+tax+delivery}}
+function renderCart(){if(!state.cart.length){cartList.className='cart-empty';cartList.textContent='Your cart is empty.'}else{cartList.className='';cartList.innerHTML=state.cart.map(i=>`<div class="cart-item"><div><strong>${esc(i.name)}</strong><br><span class="muted">${money(i.price)} each</span><div class="qty"><button onclick="changeQty('${esc(i.id)}',-1)">−</button><span>${i.qty}</span><button onclick="changeQty('${esc(i.id)}',1)">+</button></div></div><strong>${money(i.price*i.qty)}</strong></div>`).join('')}const t=totals();totals.innerHTML=`<div class="total-line"><span>Subtotal</span><strong>${money(t.subtotal)}</strong></div><div class="total-line"><span>Tax est.</span><strong>${money(t.tax)}</strong></div><div class="total-line"><span>Delivery</span><strong>${money(t.delivery)}</strong></div><div class="total-line grand"><span>Total</span><span>${money(t.total)}</span></div>`}
+function openAgreement(){if(!state.cart.length)return alert('Add at least one item.');agreementModal.classList.add('open')}function closeAgreement(){agreementModal.classList.remove('open')}
+async function submitOrder(){if(!agreeCheck.checked)return alert('Please accept the agreement.');try{const payload={items:state.cart.map(i=>({id:i.id,qty:i.qty})),orderType:state.orderType,customerName:customerName.value,customerPhone:customerPhone.value,customerEmail:customerEmail.value,deliveryAddress:deliveryAddress.value,customerNotes:customerNotes.value,coupon:couponCode.value,agreementAccepted:true,userAgent:navigator.userAgent};const res=await api('createOrder',payload);closeAgreement();renderReceipt(res.order);state.cart=[];renderCart()}catch(e){alert(e.message)}}
+function renderReceipt(o){receiptHost.innerHTML=`<div class="receipt"><div class="receipt-head"><strong>Order received</strong><br><span>${esc(o.orderId)} · ${esc(o.status)}</span></div><p><b>Type:</b> ${esc(o.orderType)}<br><b>Payment:</b> ${esc(o.paymentStatus)}</p><div class="totals"><div class="total-line grand"><span>Total</span><span>${money(o.total)}</span></div></div>${o.pickupQRUrl?`<p><b>Pickup QR</b></p><img class="qr-img" src="${esc(o.pickupQRUrl)}"><p class="muted">Show this QR/token when picking up your order.</p>`:''}${o.trackingURL?`<p><a class="btn dark" href="${esc(o.trackingURL)}">Track delivery</a></p>`:''}</div>`}
+init();
+</script></body></html>
