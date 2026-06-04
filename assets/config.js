@@ -11,7 +11,7 @@ window.RESTAURANT_SYSTEM = {
   defaultLng: -81.6557,
   locationUpdateSeconds: 30,
 
-  clientApiUrl: 'PASTE_CLIENT_API_WEB_APP_URL_HERE',
+  clientApiUrl: 'https://script.google.com/macros/s/AKfycbz3trsuRc4F-AolagUeX3O4Ildr83YoJnPOxhdLYNvJgN1mTYOxVv7DGCifm-SGJ34NaA/exec',
   adminApiUrl: 'PASTE_ADMIN_API_WEB_APP_URL_HERE',
   deliveryApiUrl: 'PASTE_DELIVERY_TRACKING_API_WEB_APP_URL_HERE',
 
