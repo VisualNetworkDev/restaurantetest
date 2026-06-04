@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tracking · Restaurante Test</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/restaurant.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+<div class="topbar"><div class="container nav"><a class="brand" href="index.html"><span class="brand-mark">🍽️</span><span id="brandName">Tracking</span></a><div class="navlinks"><a href="index.html">Volver al restaurante</a></div></div></div>
+<main class="container section">
+  <h1 class="section-title">Estado de tu pedido</h1>
+  <p class="section-sub">Aquí verás la información del pedido, el estado y la ubicación del delivery cuando esté en camino.</p>
+  <div class="tracking-status" style="margin-top:28px">
+    <div class="card" style="padding:24px">
+      <h2 id="orderTitle">Cargando...</h2>
+      <p id="statusLine"><span class="badge">---</span></p>
+      <p id="messageText" class="section-sub"></p>
+      <div class="timeline" id="timeline"></div>
+      <div class="receipt" style="margin-top:20px"><div class="receipt-head"><h3>Resumen</h3></div><div class="receipt-body" id="receiptBody"></div></div>
+    </div>
+    <div class="card" style="padding:24px">
+      <h2>Mapa delivery</h2>
+      <div id="map" class="map"></div>
+      <p id="mapNote" class="section-sub">El mapa aparecerá cuando la orden esté en camino y el delivery comparta ubicación.</p>
+    </div>
+  </div>
+</main>
+<div id="toast" class="toast"></div>
+<script>
+const API_URL='PASTE_APPS_SCRIPT_WEB_APP_URL_HERE';
+const params=new URLSearchParams(location.search);const token=params.get('token')||'';let map,marker;
+function apiRequest(api,action,payload={}){return new Promise((resolve,reject)=>{const cb='cb_'+Date.now()+'_'+Math.random().toString(36).slice(2);window[cb]=(res)=>{delete window[cb];s.remove();resolve(res)};const s=document.createElement('script');s.src=API_URL+'?api='+api+'&action='+action+'&callback='+cb+'&payload='+encodeURIComponent(JSON.stringify(payload));s.onerror=()=>reject(new Error('API error'));document.body.appendChild(s)})}
+function esc(s){return String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+function money(n){return Number(n||0).toFixed(2)}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500)}
+function initMap(){if(map)return;map=L.map('map').setView([29.6516,-82.3248],12);L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map)}
+function setMap(lat,lng){initMap();const ll=[Number(lat),Number(lng)];if(!marker)marker=L.marker(ll).addTo(map);else marker.setLatLng(ll);map.setView(ll,16)}
+function renderTimeline(status){const steps=['Pendiente','Confirmada','En preparación','Lista para delivery','En camino','Entregada'];const i=steps.indexOf(status);return steps.map((s,idx)=>`<div style="${idx<=i?'border-color:var(--brand);background:#fff8ef':''}"><b>${idx<=i?'✅':'○'} ${s}</b></div>`).join('')}
+async function load(){if(!token){orderTitle.textContent='Tracking inválido';return}const r=await apiRequest('delivery','getTrackingInfo',{token});if(!r.success){orderTitle.textContent='No encontrado';messageText.textContent=r.message;return}const d=r.data;brandName.textContent=d.restaurantName||'Restaurante';orderTitle.textContent='Orden '+d.orderId;statusLine.innerHTML='<span class="badge green">'+esc(d.status)+'</span>';messageText.textContent=d.message||'';document.getElementById('timeline').innerHTML=renderTimeline(d.status);receiptBody.innerHTML='<p><b>Tipo:</b> '+esc(d.orderType)+'</p><p><b>Pago:</b> '+esc(d.paymentStatus)+'</p><p><b>Total:</b> $'+money(d.total)+'</p><hr>'+((d.items||[]).map(i=>'<p>'+i.quantity+'x '+esc(i.name)+'</p>').join('')||'<p>No hay items visibles.</p>');if(d.delivery&&d.delivery.lat&&d.delivery.lng){setMap(d.delivery.lat,d.delivery.lng);mapNote.textContent='Última actualización: '+esc(d.delivery.updatedAt)}else{initMap();mapNote.textContent=d.status==='En camino'?'Esperando ubicación del delivery...':'El mapa se activará cuando la orden esté en camino.'}}
+load();setInterval(load,30000);
+</script>
+</body></html>

@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin · Restaurante Test</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/restaurant.css">
+</head>
+<body>
+<div id="loginScreen" class="login-screen">
+  <form class="login-box" onsubmit="login(event)">
+    <div class="brand" style="color:var(--ink);margin-bottom:18px"><span class="brand-mark">🍽️</span><span>Admin Restaurante</span></div>
+    <p class="section-sub">Acceso para admin, kitchen/staff y control de órdenes.</p>
+    <label class="field"><span>Correo</span><input id="loginEmail" type="email" required></label>
+    <label class="field"><span>Contraseña</span><input id="loginPassword" type="password" required></label>
+    <button class="btn" style="width:100%">Entrar</button>
+    <p style="color:var(--muted);font-size:13px">Primera instalación: si no hay usuarios, se crea un admin con esta entrada. Cambia la contraseña luego.</p>
+  </form>
+</div>
+
+<div id="app" class="admin-layout" style="display:none">
+  <aside class="sidebar">
+    <div class="brand"><span class="brand-mark">🍽️</span><span id="adminBrand">Restaurante</span></div>
+    <nav class="side-nav">
+      <button class="active" onclick="showPanel('dashboard',this)">Dashboard</button>
+      <button onclick="showPanel('orders',this)">Órdenes</button>
+      <button onclick="showPanel('menu',this)">Menú</button>
+      <button onclick="showPanel('staff',this)">Usuarios / Staff</button>
+      <button onclick="showPanel('payments',this)">Pagos</button>
+      <button onclick="showPanel('pickup',this)">QR Pickup</button>
+      <button onclick="showPanel('logs',this)">Logs</button>
+      <button onclick="showPanel('settings',this)">Ajustes</button>
+      <button onclick="location.href='delivery.html'">Portal Delivery</button>
+    </nav>
+  </aside>
+  <main class="main">
+    <div class="admin-top">
+      <div><h1 id="panelTitle">Dashboard</h1><p class="section-sub" id="adminSub">Control moderno de restaurante.</p></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn secondary" onclick="loadAll()">Actualizar</button><button class="btn dark" onclick="logout()">Salir</button></div>
+    </div>
+
+    <section id="dashboard" class="panel active">
+      <div class="stat-grid" id="statsGrid"></div>
+      <div class="card" style="padding:22px;margin-top:20px"><h2>Órdenes recientes</h2><div class="table-wrap"><table><thead><tr><th>Orden</th><th>Cliente</th><th>Tipo</th><th>Estado</th><th>Pago</th><th>Total</th></tr></thead><tbody id="recentOrders"></tbody></table></div></div>
+    </section>
+
+    <section id="orders" class="panel">
+      <div class="toolbar">
+        <label class="field"><span>Estado</span><select id="filterStatus" onchange="renderOrders()"><option value="">Todos</option><option>Pendiente</option><option>Confirmada</option><option>En preparación</option><option>Lista para pickup</option><option>Lista para delivery</option><option>En camino</option><option>Entregada</option><option>Recogida</option><option>Cancelada</option></select></label>
+        <label class="field"><span>Tipo</span><select id="filterType" onchange="renderOrders()"><option value="">Todos</option><option value="pickup">Pickup</option><option value="delivery">Delivery</option></select></label>
+      </div>
+      <div class="table-wrap"><table><thead><tr><th>Orden</th><th>Cliente</th><th>Items</th><th>Tipo</th><th>Estado</th><th>Pago</th><th>Total</th><th>Acciones</th></tr></thead><tbody id="ordersTable"></tbody></table></div>
+    </section>
+
+    <section id="menu" class="panel">
+      <div class="grid grid-2">
+        <form class="card" style="padding:22px" onsubmit="saveMenu(event)">
+          <h2>Producto</h2>
+          <input id="menuId" type="hidden">
+          <label class="field"><span>Categoría</span><input id="menuCategory" required></label>
+          <label class="field"><span>Nombre</span><input id="menuName" required></label>
+          <label class="field"><span>Descripción</span><textarea id="menuDescription"></textarea></label>
+          <div class="split"><label class="field"><span>Precio</span><input id="menuPrice" type="number" step="0.01" required></label><label class="field"><span>Disponible</span><select id="menuAvailable"><option>Sí</option><option>No</option></select></label></div>
+          <label class="field"><span>Imagen URL</span><input id="menuImage"></label>
+          <button class="btn">Guardar producto</button>
+        </form>
+        <div class="card" style="padding:22px"><h2>Menú actual</h2><div id="menuAdminList"></div></div>
+      </div>
+    </section>
+
+    <section id="staff" class="panel">
+      <div class="grid grid-2">
+        <form class="card" style="padding:22px" onsubmit="saveUser(event)">
+          <h2>Usuario / Staff</h2>
+          <label class="field"><span>Nombre</span><input id="userName" required></label>
+          <label class="field"><span>Correo</span><input id="userEmail" type="email" required></label>
+          <label class="field"><span>Contraseña temporal</span><input id="userPassword" placeholder="temp123"></label>
+          <label class="field"><span>Rol</span><select id="userRole"><option value="admin">admin</option><option value="staff">staff</option><option value="kitchen">kitchen</option><option value="delivery">delivery</option></select></label>
+          <label class="field"><span>Servicios/áreas permitidas</span><input id="allowedServices" placeholder="all, kitchen, delivery"></label>
+          <button class="btn">Guardar usuario</button>
+        </form>
+        <div class="card" style="padding:22px"><h2>Usuarios</h2><div id="usersList"></div></div>
+      </div>
+    </section>
+
+    <section id="payments" class="panel">
+      <div class="card" style="padding:22px">
+        <h2>Pagos</h2><p class="section-sub">Activa o desactiva pagos y pega enlaces de login/pago. Esto no procesa tarjetas directamente; enlaza a tu proveedor.</p>
+        <div id="paymentsList"></div>
+        <button class="btn" onclick="savePayments()">Guardar pagos</button>
+      </div>
+    </section>
+
+    <section id="pickup" class="panel">
+      <div class="grid grid-2">
+        <div class="card" style="padding:22px">
+          <h2>Escanear QR Pickup</h2>
+          <p class="section-sub">El cliente recibe un QR con token de la orden. Aquí se verifica y se marca como recogida.</p>
+          <label class="field"><span>Token o texto QR</span><input id="pickupTokenInput" placeholder="PICKUP|ORD...|TOKEN..."></label>
+          <button class="btn" onclick="verifyPickup()">Verificar</button>
+          <button class="btn success" onclick="markPickup()">Marcar recogida</button>
+          <div id="pickupResult" style="margin-top:16px"></div>
+        </div>
+        <div class="card" style="padding:22px"><h2>Cámara</h2><p class="section-sub">Base lista: usa entrada manual si el navegador no soporta escaneo. Puedes integrar html5-qrcode luego.</p><div class="empty">Scanner avanzado pendiente de conectar si se desea.</div></div>
+      </div>
+    </section>
+
+    <section id="logs" class="panel"><div class="card" style="padding:22px"><h2>Logs administrativos y delivery</h2><div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Usuario</th><th>Rol</th><th>Acción</th><th>Orden</th><th>Resultado</th></tr></thead><tbody id="logsTable"></tbody></table></div></div></section>
+
+    <section id="settings" class="panel">
+      <form class="card" style="padding:22px" onsubmit="saveSettings(event)">
+        <h2>Ajustes generales</h2>
+        <div class="split"><label class="field"><span>Nombre restaurante</span><input id="cfgRestaurantName"></label><label class="field"><span>Teléfono</span><input id="cfgRestaurantPhone"></label></div>
+        <label class="field"><span>Dirección</span><input id="cfgRestaurantAddress"></label>
+        <label class="field"><span>Instagram URL</span><input id="cfgInstagramURL"></label>
+        <label class="field"><span>Public Base URL GitHub</span><input id="cfgPublicBaseURL" placeholder="https://usuario.github.io/repo"></label>
+        <div class="split"><label class="field"><span>Tax Rate</span><input id="cfgTaxRate" type="number" step="0.001"></label><label class="field"><span>Delivery Fee</span><input id="cfgDeliveryFee" type="number" step="0.01"></label></div>
+        <div class="split"><label class="field"><span>Delivery activo</span><select id="cfgDeliveryEnabled"><option>Sí</option><option>No</option></select></label><label class="field"><span>Pickup activo</span><select id="cfgPickupEnabled"><option>Sí</option><option>No</option></select></label></div>
+        <label class="field"><span>Texto acerca</span><textarea id="cfgAboutText" rows="3"></textarea></label>
+        <label class="field"><span>Acuerdo del cliente</span><textarea id="cfgAgreementText" rows="4"></textarea></label>
+        <button class="btn">Guardar ajustes</button>
+      </form>
+    </section>
+  </main>
+</div>
+<div id="toast" class="toast"></div>
+<script>
+const API_URL='PASTE_APPS_SCRIPT_WEB_APP_URL_HERE';
+const state={sessionToken:localStorage.getItem('rt_session')||'',user:null,dashboard:null,orders:[],menu:{products:[]},users:[],config:{},payments:[],logs:[],pickupOrder:null};
+function apiRequest(api,action,payload={}){payload.sessionToken=state.sessionToken;return new Promise((resolve,reject)=>{const cb='cb_'+Date.now()+'_'+Math.random().toString(36).slice(2);window[cb]=(res)=>{delete window[cb];s.remove();resolve(res)};const s=document.createElement('script');s.src=API_URL+'?api='+api+'&action='+action+'&callback='+cb+'&payload='+encodeURIComponent(JSON.stringify(payload));s.onerror=()=>reject(new Error('Error conectando API'));document.body.appendChild(s)})}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500)}
+function esc(s){return String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+function money(n){return (Number(n||0)).toFixed(2)}
+async function login(e){e.preventDefault();const res=await apiRequest('admin','login',{email:loginEmail.value,password:loginPassword.value});if(!res.success)return toast(res.message);state.sessionToken=res.data.sessionToken;localStorage.setItem('rt_session',state.sessionToken);await loadAll()}
+function logout(){localStorage.removeItem('rt_session');location.reload()}
+async function loadAll(){if(!state.sessionToken){loginScreen.style.display='grid';app.style.display='none';return}const boot=await apiRequest('admin','bootstrap',{});if(!boot.success){localStorage.removeItem('rt_session');loginScreen.style.display='grid';app.style.display='none';toast(boot.message);return}state.user=boot.data.user;state.dashboard=boot.data.dashboard;state.config=boot.data.config||{};state.payments=boot.data.payments||[];loginScreen.style.display='none';app.style.display='grid';adminBrand.textContent=state.config.RestaurantName||'Restaurante';await Promise.all([loadOrders(),loadMenu(),loadUsers(),loadLogs()]);fillSettings();renderDashboard();renderPayments()}
+async function loadOrders(){const r=await apiRequest('admin','getOrders',{});if(r.success){state.orders=r.data;renderOrders()}}
+async function loadMenu(){const r=await apiRequest('admin','getMenuAdmin',{});if(r.success){state.menu=r.data;renderMenuAdmin()}}
+async function loadUsers(){const r=await apiRequest('admin','getUsers',{});if(r.success){state.users=r.data;renderUsers()}}
+async function loadLogs(){const r=await apiRequest('admin','getLogs',{});if(r.success){state.logs=r.data;renderLogs()}}
+function showPanel(id,btn){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.side-nav button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');panelTitle.textContent=btn.textContent.trim()}
+function renderDashboard(){const d=state.dashboard||{};const stats=[['Órdenes',d.ordersCount||0],['Pendientes',(d.byStatus||{}).Pendiente||0],['En camino',(d.byStatus||{})['En camino']||0],['Ganancias','$'+money(d.completedRevenue||0)]];statsGrid.innerHTML=stats.map(s=>`<div class="stat-card card"><span>${s[0]}</span><b>${s[1]}</b></div>`).join('');recentOrders.innerHTML=(d.latestOrders||[]).map(o=>`<tr><td>${esc(o.OrderID)}</td><td>${esc(o.ClienteNombre)}</td><td>${esc(o.TipoOrden)}</td><td><span class="badge">${esc(o.Estado)}</span></td><td>${esc(o.PaymentStatus)}</td><td>$${money(o.Total)}</td></tr>`).join('')}
+function renderOrders(){let rows=state.orders||[];if(filterStatus.value)rows=rows.filter(o=>o.Estado===filterStatus.value);if(filterType.value)rows=rows.filter(o=>o.TipoOrden===filterType.value);ordersTable.innerHTML=rows.map(o=>{const items=JSON.parse(o.ItemsJSON||'[]').map(i=>`${i.quantity}x ${i.name}`).join('<br>');return `<tr><td><b>${esc(o.OrderID)}</b><br><small>${esc(o.Timestamp)}</small></td><td>${esc(o.ClienteNombre)}<br><small>${esc(o.ClienteTelefono)}</small></td><td>${items}</td><td>${esc(o.TipoOrden)}</td><td><select onchange="updateStatus('${esc(o.OrderID)}',this.value)">${['Pendiente','Confirmada','En preparación','Lista para pickup','Lista para delivery','En camino','Entregada','Recogida','Cancelada'].map(s=>`<option ${o.Estado===s?'selected':''}>${s}</option>`).join('')}</select></td><td>${esc(o.PaymentStatus)}</td><td>$${money(o.Total)}</td><td>${o.TipoOrden==='delivery'?deliveryAssignUi(o):''}<button class="btn ghost" onclick="copy('${esc(o.OrderID)}')">Copiar ID</button></td></tr>`}).join('')||'<tr><td colspan="8">No hay órdenes.</td></tr>'}
+function deliveryAssignUi(o){return `<select id="del_${esc(o.OrderID)}"><option value="">Delivery...</option>${state.users.filter(u=>u.role==='delivery').map(u=>`<option value="${esc(u.email)}" ${o.AssignedDeliveryEmail===u.email?'selected':''}>${esc(u.name||u.email)}</option>`).join('')}</select><button class="btn secondary" onclick="assignDelivery('${esc(o.OrderID)}')">Asignar</button>`}
+async function updateStatus(orderId,status){const r=await apiRequest('admin','updateOrderStatus',{orderId,status});toast(r.message);await loadOrders();await loadLogs()}
+async function assignDelivery(orderId){const email=document.getElementById('del_'+orderId).value;if(!email)return toast('Selecciona delivery');const r=await apiRequest('admin','assignDelivery',{orderId,deliveryEmail:email});toast(r.message);await loadOrders()}
+function renderMenuAdmin(){menuAdminList.innerHTML=(state.menu.products||[]).map(p=>`<div class="cart-line"><div><b>${esc(p.name)}</b><br><small>${esc(p.category)} · $${money(p.price)} · ${p.available?'Disponible':'Oculto'}</small></div><div><button class="btn ghost" onclick='editMenu(${JSON.stringify(p).replace(/'/g,"&#39;")})'>Editar</button></div></div>`).join('')||'<div class="empty">Sin menú.</div>'}
+function editMenu(p){menuId.value=p.id;menuCategory.value=p.category;menuName.value=p.name;menuDescription.value=p.description;menuPrice.value=p.price;menuAvailable.value=p.available?'Sí':'No';menuImage.value=p.image||''}
+async function saveMenu(e){e.preventDefault();const item={ID:menuId.value,Categoria:menuCategory.value,Nombre:menuName.value,Descripcion:menuDescription.value,Precio:menuPrice.value,Disponible:menuAvailable.value,Imagen:menuImage.value};const r=await apiRequest('admin','saveMenuItem',{item});toast(r.message);e.target.reset();await loadMenu()}
+function renderUsers(){usersList.innerHTML=(state.users||[]).map(u=>`<div class="cart-line"><div><b>${esc(u.name||u.email)}</b><br><small>${esc(u.email)} · ${esc(u.role)} · ${u.active?'Activo':'Inactivo'}</small></div></div>`).join('')||'<div class="empty">No hay usuarios.</div>'}
+async function saveUser(e){e.preventDefault();const user={Nombre:userName.value,Email:userEmail.value,Password:userPassword.value||'temp123',Role:userRole.value,ServiciosPermitidos:allowedServices.value||'all',Activo:'Sí'};const r=await apiRequest('admin','saveUser',{user});toast(r.message);e.target.reset();await loadUsers()}
+function renderPayments(){const defaults=state.payments.length?state.payments:[{Provider:'Online Link',Enabled:'No',PaymentLink:'',LoginURL:'',Notes:''}];paymentsList.innerHTML=defaults.map((p,i)=>`<div class="card" style="padding:16px;margin:12px 0"><div class="split"><label class="field"><span>Provider</span><input data-pay="Provider" data-i="${i}" value="${esc(p.Provider)}"></label><label class="field"><span>Enabled</span><select data-pay="Enabled" data-i="${i}"><option ${p.Enabled==='Sí'?'selected':''}>Sí</option><option ${p.Enabled!=='Sí'?'selected':''}>No</option></select></label></div><label class="field"><span>Payment Link</span><input data-pay="PaymentLink" data-i="${i}" value="${esc(p.PaymentLink)}"></label><label class="field"><span>Login URL</span><input data-pay="LoginURL" data-i="${i}" value="${esc(p.LoginURL)}"></label></div>`).join('')}
+async function savePayments(){const list=[];document.querySelectorAll('[data-i]').forEach(el=>{const i=el.dataset.i;list[i]=list[i]||{};list[i][el.dataset.pay]=el.value});const r=await apiRequest('admin','savePayments',{payments:list});toast(r.message)}
+async function verifyPickup(){const r=await apiRequest('admin','verifyPickupToken',{qrText:pickupTokenInput.value});pickupResult.innerHTML=r.success?`<div class="receipt"><div class="receipt-head"><h3>Orden válida</h3></div><div class="receipt-body"><p><b>${esc(r.data.order.OrderID)}</b></p><p>${esc(r.data.order.ClienteNombre)}</p><p>${esc(r.data.order.Estado)}</p></div></div>`:`<div class="empty">${esc(r.message)}</div>`;if(r.success)state.pickupOrder=r.data.order}
+async function markPickup(){if(!pickupTokenInput.value)return toast('Verifica primero');const r=await apiRequest('admin','markPickupCollected',{qrText:pickupTokenInput.value});toast(r.message);await loadOrders();await loadLogs()}
+function renderLogs(){logsTable.innerHTML=(state.logs||[]).map(l=>`<tr><td>${esc(l.Timestamp)}</td><td>${esc(l.UserEmail)}</td><td>${esc(l.UserRole)}</td><td>${esc(l.Action)}</td><td>${esc(l.OrderID)}</td><td>${esc(l.Result)}</td></tr>`).join('')}
+function fillSettings(){const c=state.config;cfgRestaurantName.value=c.RestaurantName||'';cfgRestaurantPhone.value=c.RestaurantPhone||'';cfgRestaurantAddress.value=c.RestaurantAddress||'';cfgInstagramURL.value=c.InstagramURL||'';cfgPublicBaseURL.value=c.PublicBaseURL||'';cfgTaxRate.value=c.TaxRate||'';cfgDeliveryFee.value=c.DeliveryFee||'';cfgDeliveryEnabled.value=c.DeliveryEnabled||'Sí';cfgPickupEnabled.value=c.PickupEnabled||'Sí';cfgAboutText.value=c.AboutText||'';cfgAgreementText.value=c.AgreementText||''}
+async function saveSettings(e){e.preventDefault();const config={RestaurantName:cfgRestaurantName.value,RestaurantPhone:cfgRestaurantPhone.value,RestaurantAddress:cfgRestaurantAddress.value,InstagramURL:cfgInstagramURL.value,PublicBaseURL:cfgPublicBaseURL.value,TaxRate:cfgTaxRate.value,DeliveryFee:cfgDeliveryFee.value,DeliveryEnabled:cfgDeliveryEnabled.value,PickupEnabled:cfgPickupEnabled.value,AboutText:cfgAboutText.value,AgreementText:cfgAgreementText.value};const r=await apiRequest('admin','saveSettings',{config});toast(r.message);state.config=r.data}
+function copy(t){navigator.clipboard?.writeText(t);toast('Copiado')}
+loadAll().catch(e=>toast(e.message));
+</script>
+</body></html>
