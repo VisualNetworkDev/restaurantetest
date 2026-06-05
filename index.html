@@ -1,53 +1,394 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Restaurant Test</title>
-<link rel="preconnect" href="https://images.unsplash.com">
-<link rel="stylesheet" href="assets/restaurant.css">
-<script src="assets/config.js"></script>
-<style>
-.client-top{position:sticky;top:0;z-index:50;background:rgba(255,248,239,.82);backdrop-filter:blur(18px);border-bottom:1px solid var(--line)}.client-tabs{display:flex;gap:8px;overflow:auto}.client-tabs button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:10px 15px;font-weight:900;color:var(--muted);white-space:nowrap}.client-tabs button.active{background:var(--dark);color:#fff;border-color:var(--dark)}.client-hero{padding:34px 0 18px}.hero-box{min-height:540px;border-radius:42px;overflow:hidden;background:var(--dark);display:grid;grid-template-columns:1.05fr .95fr;box-shadow:var(--shadow)}.hero-copy{padding:54px;color:#fff;display:flex;flex-direction:column;justify-content:center}.hero-copy h1{font-family:Georgia,serif;font-size:clamp(46px,8vw,92px);line-height:.92;margin:12px 0}.hero-copy p{font-size:18px;line-height:1.7;color:#f5dfc3}.hero-photo{position:relative;min-height:540px;background:url('https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1600&q=84') center/cover}.hero-float{position:absolute;right:24px;bottom:24px;width:min(330px,calc(100% - 48px));background:rgba(255,255,255,.92);border-radius:28px;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.26)}.app-grid{display:grid;grid-template-columns:minmax(0,1fr) 410px;gap:20px;align-items:start;padding:18px 0 54px}.client-workspace{min-height:650px;border:1px solid var(--line);border-radius:36px;background:rgba(255,255,255,.72);box-shadow:0 18px 50px rgba(36,20,6,.08);overflow:hidden}.view{display:none;padding:24px}.view.active{display:block;animation:rise .35s ease both}.cat-tabs{display:flex;gap:10px;overflow:auto;margin:14px 0 20px}.cat-tabs button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:11px 15px;font-weight:950;color:var(--muted);white-space:nowrap}.cat-tabs button.active{background:linear-gradient(135deg,var(--brand),var(--brand-2));color:#fff;border-color:transparent}.food-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.food-card{overflow:hidden;border:1px solid var(--line);border-radius:30px;background:#fff;box-shadow:0 16px 36px rgba(36,20,6,.08);transition:.28s ease}.food-card:hover{transform:translateY(-6px);box-shadow:0 28px 70px rgba(36,20,6,.18)}.food-img{height:230px;background:#eadfce;overflow:hidden}.food-img img{width:100%;height:100%;object-fit:cover;transition:transform .7s cubic-bezier(.2,.8,.2,1),filter .4s}.food-card:hover img{transform:scale(1.1) rotate(.7deg);filter:saturate(1.15) contrast(1.03)}.food-body{padding:18px}.food-title{display:flex;justify-content:space-between;gap:12px}.food-title h3{margin:0;font-size:21px}.cart-side{position:sticky;top:94px;border:1px solid var(--line);border-radius:36px;background:#fff;box-shadow:var(--shadow);padding:18px;max-height:calc(100vh - 112px);overflow:auto}.cart-side h2{font-family:Georgia,serif;font-size:34px;margin:0 0 12px}.cart-item{display:grid;grid-template-columns:1fr auto;gap:10px;border-bottom:1px solid var(--line);padding:12px 0}.license{padding:36px 0 52px;text-align:center;color:var(--muted)}@media(max-width:980px){.hero-box,.app-grid,.food-grid{grid-template-columns:1fr}.cart-side{position:relative;top:auto;max-height:none}.hero-copy{padding:34px}.hero-photo{min-height:340px}}
-</style>
-</head>
-<body>
-<header class="client-top"><div class="container nav"><a class="brand" href="index.html"><span class="brand-mark">RT</span><span><span id="brandName">Restaurant Test</span><small>Modern ordering</small></span></a><nav class="client-tabs" id="mainTabs"><button class="active" data-view="menu">Menu</button><button data-view="offers">Offers</button><button data-view="stories">Stories</button><button data-view="visit">Visit</button><button data-view="about">About</button></nav></div></header>
-<main>
-<section class="client-hero"><div class="container hero-box"><div class="hero-copy"><div class="pill">Pickup QR · Delivery tracking · Online receipt</div><h1 id="heroTitle">Order fresh. Track fast.</h1><p id="heroText">Browse a visual menu, choose pickup or delivery, receive a professional receipt, and track your driver when the order is on the way.</p><div class="hero-actions"><button class="btn" onclick="showView('menu')">Start order</button><button class="btn secondary" onclick="showView('offers')">View offers</button></div></div><div class="hero-photo" id="heroPhoto"><div class="hero-float"><span class="muted">Today’s flow</span><h3>Secure pickup QR + live delivery status</h3><p class="muted">A restaurant-style page that feels like an ordering app, not an old one-page website.</p></div></div></div></section>
-<section class="container app-grid"><div class="client-workspace">
-<section class="view active" id="view-menu"><div class="section-head"><div><h2 class="section-title">Interactive menu</h2><p class="section-sub">Choose a category. Photos and product cards animate when customers explore the menu.</p></div></div><div class="cat-tabs" id="categoryTabs"></div><div class="food-grid" id="menuGrid"></div></section>
-<section class="view" id="view-offers"><div class="section-head"><div><h2 class="section-title">Offers & discounts</h2><p class="section-sub">Active restaurant promotions and coupon codes.</p></div></div><div class="grid grid-3" id="promoGrid"></div></section>
-<section class="view" id="view-stories"><div class="section-head"><div><h2 class="section-title">Guest stories</h2><p class="section-sub">Customer testimonials and social proof.</p></div></div><div class="grid grid-3" id="testimonialGrid"></div></section>
-<section class="view" id="view-visit"><div class="section-head"><div><h2 class="section-title">Visit & contact</h2><p class="section-sub">Address, phone, email and Instagram if configured.</p></div></div><div class="grid grid-3"><div class="tile"><h3>Address</h3><p id="addressText" class="muted">Loading...</p></div><div class="tile"><h3>Contact</h3><p id="contactText" class="muted">Loading...</p></div><div class="tile"><h3>Instagram</h3><p id="instagramText" class="muted">Not configured yet.</p></div></div></section>
-<section class="view" id="view-about"><div class="section-head"><div><h2 class="section-title">About the kitchen</h2><p id="aboutText" class="section-sub">Fresh food, smooth ordering and a professional customer experience.</p></div></div><div class="grid grid-3"><div class="tile"><h3>Pickup</h3><p class="muted">Customers receive a secure QR/token for pickup verification.</p></div><div class="tile"><h3>Delivery</h3><p class="muted">Customers can track the driver on the tracking page when GPS is active.</p></div><div class="tile"><h3>Receipts</h3><p class="muted">Receipts stay professional and match the restaurant style.</p></div></div></section>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Restaurant Test</title>
+    <link rel="stylesheet" href="assets/restaurant.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="container nav">
+        <div class="brandmark">
+          <div class="logo">RT</div>
+          <div>
+            <div id="biz">Restaurant Test</div>
+            <div class="small">Order • Pickup • Delivery</div>
+          </div>
+        </div>
+        <nav class="navlinks">
+          <button class="active" onclick="sec('menu',this)">Menu</button>
+          <button onclick="sec('offers',this)">Offers</button>
+          <button onclick="sec('about',this)">About</button>
+          <button onclick="sec('reviews',this)">Reviews</button>
+          <button onclick="sec('contact',this)">Contact</button>
+        </nav>
+        <button class="btn dark" onclick="openCart()">Cart <span id="cartCount">0</span>
+        </button>
+      </div>
+    </header>
+    <main class="container">
+      <section class="hero">
+        <div>
+          <span class="pill">Fresh food • Fast ordering • Live tracking</span>
+          <h1 id="heroTitle">Order fresh. Track fast.</h1>
+          <p id="heroText">Browse the menu, place your order, choose pickup or delivery, and receive professional receipts with QR pickup or delivery tracking.</p>
+          <button class="btn brand" onclick="sec('menu')">Start order</button>
+        </div>
+        <div id="heroPanel" class="heroPanel">
+          <div class="float">
+            <span class="pill">Today&apos;s menu</span>
+            <h2>Pickup or delivery</h2>
+            <p class="muted">Tracking activates when the driver starts delivery.</p>
+          </div>
+        </div>
+      </section>
+      <div class="tabs">
+        <button class="tab active" onclick="sec('menu',this)">Menu</button>
+        <button class="tab" onclick="sec('offers',this)">Promotions</button>
+        <button class="tab" onclick="sec('about',this)">About</button>
+        <button class="tab" onclick="sec('reviews',this)">Reviews</button>
+        <button class="tab" onclick="sec('contact',this)">Contact</button>
+      </div>
+      <section id="s-menu" class="section active">
+        <div id="catTabs" class="tabs">
+        </div>
+        <div id="menuGrid" class="grid menu">
+        </div>
+      </section>
+      <section id="s-offers" class="section">
+        <div id="offers" class="grid">
+        </div>
+      </section>
+      <section id="s-about" class="section">
+        <div class="card" style="padding:24px">
+          <h2>About us</h2>
+          <p id="about" class="muted">
+          </p>
+        </div>
+      </section>
+      <section id="s-reviews" class="section">
+        <div id="reviews" class="grid">
+        </div>
+      </section>
+      <section id="s-contact" class="section">
+        <div class="card" style="padding:24px">
+          <h2>Contact</h2>
+          <p>
+            <b>Phone:</b> <span id="phone">
+            </span>
+          </p>
+          <p>
+            <b>Email:</b> <span id="email">
+            </span>
+          </p>
+          <p>
+            <b>Address:</b> <span id="addr">
+            </span>
+          </p>
+          <p id="igLine" style="display:none">
+            <b>Instagram:</b> <a id="ig" target="_blank">Visit Instagram</a>
+            </p>
+          </div>
+        </section>
+      </main>
+      <button class="cartBtn" onclick="openCart()">🛒 <span id="cartCount2">0</span>
+      </button>
+      <aside id="drawer" class="drawer">
+        <div class="drawerHead">
+          <b>Your order</b>
+          <button class="btn light" onclick="closeCart()">Close</button>
+        </div>
+        <div class="drawerBody" id="cartItems">
+        </div>
+        <div class="drawerFoot">
+          <div id="totals">
+          </div>
+          <button class="btn brand" style="width:100%" onclick="checkout()">Checkout</button>
+        </div>
+      </aside>
+      <div id="checkoutModal" class="modal">
+        <div class="modalCard">
+          <h2>Checkout</h2>
+          <div class="formGrid">
+            <label class="field">Name<input id="cName">
+            </label>
+            <label class="field">Phone<input id="cPhone">
+            </label>
+            <label class="field full">Email<input id="cEmail">
+            </label>
+            <label class="field">Order type<select id="oType" onchange="delFields();renderCart()">
+              <option value="pickup">Pickup</option>
+              <option value="delivery">Delivery</option>
+            </select>
+          </label>
+          <label class="field">Tip<input id="tip" type="number" step="0.01" value="0" oninput="renderCart()">
+          </label>
+          <label id="dAddrWrap" class="field full" style="display:none">Delivery address<input id="dAddr">
+          </label>
+          <label id="dInstWrap" class="field full" style="display:none">Delivery instructions<textarea id="dInst">
+          </textarea>
+        </label>
+        <label class="field">Coupon<input id="coupon">
+        </label>
+        <label class="field">Payment<select id="payMethod">
+          <option>Not selected</option>
+          <option>Payment link</option>
+          <option>Cash</option>
+          <option>Zelle</option>
+          <option>Cash App</option>
+        </select>
+      </label>
+      <label class="field full">Notes<textarea id="notes">
+      </textarea>
+    </label>
+    <label class="field full" style="display:flex;gap:10px">
+      <input id="agree" type="checkbox" style="width:auto">
+      <span>I confirm my order information is correct.</span>
+    </label>
+  </div>
+  <div id="checkoutTotals" class="card" style="padding:14px;margin-top:14px">
+  </div>
+  <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px">
+    <button class="btn light" onclick="checkoutModal.classList.remove('open')">Cancel</button>
+    <button id="placeBtn" class="btn brand" onclick="place()">Place order</button>
+  </div>
 </div>
-<aside class="cart-side"><h2>Your cart</h2><div id="cartList" class="empty">Your cart is empty.</div><div class="totals" id="totalBox"></div><div class="checkout-card"><div class="order-type"><button id="pickupBtn" class="active" onclick="setOrderType('pickup')">Pickup</button><button id="deliveryBtn" onclick="setOrderType('delivery')">Delivery</button></div><input id="customerName" placeholder="Full name"><input id="customerPhone" placeholder="Phone"><input id="customerEmail" placeholder="Email"><textarea id="deliveryAddress" placeholder="Delivery address" hidden></textarea><textarea id="customerNotes" placeholder="Order notes"></textarea><input id="couponCode" placeholder="Coupon code"><button class="btn dark" onclick="openAgreement()">Review & place order</button><div id="receiptHost"></div></div></aside></section>
-</main>
-<div class="modal" id="agreementModal"><div class="modal-card"><h2>Order agreement</h2><p id="agreementText" class="section-sub">Please confirm your order details are correct before placing the order.</p><label style="display:flex;gap:10px;align-items:center;margin:18px 0"><input id="agreeCheck" type="checkbox" style="width:auto"> I accept the restaurant order terms.</label><div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap"><button class="btn secondary" onclick="closeAgreement()">Cancel</button><button class="btn" onclick="submitOrder()">Place order</button></div></div></div>
-<footer class="footer license"><div class="container"><strong id="licenseName">Restaurant Test Ordering System</strong><br><span>Licensed / Powered by <span id="licenseBy">Visual Event Network</span></span><br><span id="licenseBusiness">Restaurant Test</span></div></footer>
+</div>
+<div id="receiptModal" class="modal">
+  <div class="modalCard">
+    <div id="receipt">
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px">
+      <button class="btn light" onclick="receiptModal.classList.remove('open')">Close</button>
+      <button id="payBtn" class="btn dark" style="display:none" onclick="payNow()">Pay Securely</button>
+    </div>
+  </div>
+</div>
+<div id="toast" class="toast">
+</div>
+<script src="assets/config.js">
+</script>
 <script>
-const cfg=window.RESTAURANT_SYSTEM||{};let state={config:null,menu:[],categories:['All'],category:'All',cart:[],orderType:'pickup',promos:[]};
-const fallbackMenu=[{id:'M001',category:'Main Dishes',name:'Grilled Chicken Bowl',description:'Rice, salad, grilled chicken and house sauce.',price:13.99,image:'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=1200&q=80'},{id:'M002',category:'Main Dishes',name:'Classic Burger',description:'Toasted bun, beef patty, cheese and house fries.',price:14.99,image:'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1200&q=80'},{id:'M003',category:'Drinks',name:'Passion Fruit Juice',description:'Fresh tropical juice served cold.',price:4.5,image:'https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?auto=format&fit=crop&w=1200&q=80'}];
-const esc=v=>RTApi.esc(v),money=v=>RTApi.money(v);
-async function client(action,payload={}){return RTApi.client(action,payload)}
-async function init(){try{state.config=await client('getRestaurantConfig');const m=await client('getMenu');state.menu=m.items||m.menu||[];state.categories=['All'].concat(m.categories||[...new Set(state.menu.map(x=>x.category).filter(Boolean))]);state.promos=await client('getPromotions');let t=[];try{t=await client('getTestimonials')}catch(_e){}renderAll(t)}catch(e){state.config={name:cfg.businessName||'Restaurant Test',taxRate:.07,deliveryFee:4.99,licenseBy:cfg.licenseBy};state.menu=fallbackMenu;state.categories=['All',...new Set(fallbackMenu.map(x=>x.category))];state.promos=[{code:'WELCOME10',title:'Welcome offer',description:'Use this demo coupon when the API is connected.'}];renderAll([{name:'Guest',text:'The ordering page feels clean, fast and professional.',rating:5}])}}
-function renderAll(testimonials=[]){renderConfig();renderCats();renderMenu();renderPromos();renderTestimonials(testimonials);renderCart()}
-function renderConfig(){const c=state.config||{};brandName.textContent=c.name||cfg.businessName||'Restaurant Test';heroTitle.textContent=(c.name||'Restaurant Test')+'. Order beautifully.';if(c.tagline)heroText.textContent=c.tagline;if(c.heroImage)heroPhoto.style.backgroundImage=`url('${c.heroImage}')`;addressText.textContent=c.address||'Address not configured yet.';contactText.innerHTML=`${esc(c.phone||'No phone yet')}<br>${esc(c.email||'No email yet')}`;instagramText.innerHTML=c.instagramUrl?`<a href="${esc(c.instagramUrl)}" target="_blank">Open Instagram</a>`:'Not configured yet.';aboutText.textContent=c.aboutText||aboutText.textContent;agreementText.textContent=c.agreementText||agreementText.textContent;licenseName.textContent=c.licenseName||cfg.licenseName||'Restaurant Test Ordering System';licenseBy.textContent=c.licenseBy||cfg.licenseBy||'Visual Event Network';licenseBusiness.textContent=c.name||'Restaurant Test'}
-function showView(name){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById('view-'+name).classList.add('active');document.querySelectorAll('#mainTabs button').forEach(b=>b.classList.toggle('active',b.dataset.view===name))}
-document.querySelectorAll('#mainTabs button').forEach(b=>b.addEventListener('click',()=>showView(b.dataset.view)));
-function renderCats(){categoryTabs.innerHTML=state.categories.map(c=>`<button class="${c===state.category?'active':''}" onclick="selectCat('${esc(c)}')">${esc(c)}</button>`).join('')}
-function selectCat(c){state.category=c;renderCats();renderMenu()}
-function renderMenu(){const items=state.menu.filter(i=>state.category==='All'||i.category===state.category);menuGrid.innerHTML=items.map(i=>`<article class="food-card"><div class="food-img"><img src="${esc(i.image||i.Image||'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=1200&q=80')}" alt="${esc(i.name)}"></div><div class="food-body"><div class="food-title"><h3>${esc(i.name)}</h3><span class="price">${money(i.price)}</span></div><p class="muted">${esc(i.description||'')}</p><div class="add-row"><button class="btn" onclick="addItem('${esc(i.id)}')">Add to cart</button><span class="muted">${esc(i.category)}</span></div></div></article>`).join('')||'<div class="empty">No items in this category yet.</div>'}
-function renderPromos(){promoGrid.innerHTML=(state.promos||[]).map(p=>`<div class="tile"><h3>${esc(p.title||p.code||'Special offer')}</h3><p class="muted">${esc(p.description||'')}</p><span class="promo-code">${esc(p.code||'')}</span><br><br><button class="btn secondary" onclick="couponCode.value='${esc(p.code||'')}'">Use code</button></div>`).join('')||'<div class="empty">No active offers yet.</div>'}
-function renderTestimonials(t){testimonialGrid.innerHTML=(t||[]).map(x=>`<div class="tile"><h3>${'★'.repeat(Math.max(1,Math.min(5,Math.round(x.rating||5))))}</h3><p class="muted">${esc(x.text)}</p><strong>${esc(x.name)}</strong></div>`).join('')||'<div class="empty">No testimonials yet.</div>'}
-function addItem(id){const item=state.menu.find(i=>String(i.id)===String(id));if(!item)return;const row=state.cart.find(x=>String(x.id)===String(id));row?row.qty++:state.cart.push({...item,qty:1});renderCart()}function changeQty(id,d){const row=state.cart.find(x=>String(x.id)===String(id));if(!row)return;row.qty+=d;if(row.qty<=0)state.cart=state.cart.filter(x=>String(x.id)!==String(id));renderCart()}
-function setOrderType(t){state.orderType=t;pickupBtn.classList.toggle('active',t==='pickup');deliveryBtn.classList.toggle('active',t==='delivery');deliveryAddress.hidden=t!=='delivery';renderCart()}
-function calcTotals(){const subtotal=state.cart.reduce((s,i)=>s+Number(i.price||0)*i.qty,0);const tax=subtotal*Number((state.config&&state.config.taxRate)||.07);const delivery=state.orderType==='delivery'?Number((state.config&&state.config.deliveryFee)||4.99):0;return{subtotal,tax,delivery,total:subtotal+tax+delivery}}
-function renderCart(){if(!state.cart.length){cartList.className='empty';cartList.textContent='Your cart is empty.'}else{cartList.className='';cartList.innerHTML=state.cart.map(i=>`<div class="cart-item"><div><strong>${esc(i.name)}</strong><br><span class="muted">${money(i.price)} each</span><div class="qty"><button onclick="changeQty('${esc(i.id)}',-1)">−</button><span>${i.qty}</span><button onclick="changeQty('${esc(i.id)}',1)">+</button></div></div><strong>${money(Number(i.price||0)*i.qty)}</strong></div>`).join('')}const t=calcTotals();totalBox.innerHTML=`<div class="total-line"><span>Subtotal</span><strong>${money(t.subtotal)}</strong></div><div class="total-line"><span>Tax est.</span><strong>${money(t.tax)}</strong></div><div class="total-line"><span>Delivery</span><strong>${money(t.delivery)}</strong></div><div class="total-line grand"><span>Total</span><span>${money(t.total)}</span></div>`}
-function openAgreement(){if(!state.cart.length)return alert('Add at least one item.');if(state.orderType==='delivery'&&!deliveryAddress.value.trim())return alert('Delivery address is required.');agreementModal.classList.add('open')}function closeAgreement(){agreementModal.classList.remove('open')}
-async function submitOrder(){if(!agreeCheck.checked)return alert('Please accept the agreement.');const payload={items:state.cart.map(i=>({id:i.id,qty:i.qty,quantity:i.qty,notes:''})),orderType:state.orderType,customerName:customerName.value,customerPhone:customerPhone.value,customerEmail:customerEmail.value,deliveryAddress:deliveryAddress.value,customerNotes:customerNotes.value,coupon:couponCode.value,agreementAccepted:true,userAgent:navigator.userAgent};try{const res=await client('createOrder',payload);closeAgreement();renderReceipt(res.order||res);state.cart=[];renderCart()}catch(e){const t=calcTotals();const order={orderId:'RT-DEMO-'+Date.now().toString().slice(-5),status:'Pending',orderType:state.orderType,paymentStatus:'Payment pending',total:t.total,items:state.cart.map(i=>({name:i.name,quantity:i.qty})),pickupToken:'DEMO-PICKUP-'+Date.now(),trackingURL:'tracking.html?token=DEMO-'+Date.now()};closeAgreement();renderReceipt(order);state.cart=[];renderCart()}}
-function qrUrl(token){return 'https://quickchart.io/qr?size=220&text='+encodeURIComponent(token)}
-function renderReceipt(o){const pickupQR=o.pickupQRUrl||((o.orderType==='pickup'&&(o.pickupToken||o.pickupTokenUrl))?qrUrl(o.pickupToken||o.pickupTokenUrl):'');const tracking=o.trackingURL||o.trackingUrl||((o.trackingToken)?((cfg.trackingPage||'tracking.html')+'?token='+encodeURIComponent(o.trackingToken)):'');receiptHost.innerHTML=`<div class="receipt"><div class="receipt-head"><strong>Order received</strong><br><span>${esc(o.orderId)} · ${esc(o.status||'Pending')}</span></div><div class="receipt-body"><p><b>Type:</b> ${esc(o.orderType)}<br><b>Payment:</b> ${esc(o.paymentStatus||'Payment pending')}</p><div class="totals"><div class="total-line grand"><span>Total</span><span>${money(o.total)}</span></div></div>${pickupQR?`<p><b>Pickup QR</b></p><img class="qr-img" src="${esc(pickupQR)}"><p class="muted">Show this QR/token when picking up your order.</p>`:''}${tracking?`<p><a class="btn dark" href="${esc(tracking)}">Track delivery</a></p>`:''}</div></div>`}
+let cfg= {
+}, items=[], cats=[], promos=[], revs=[], payments= {
+enabled:'No'
+}, cart= {
+}, cat='All';
+function $(i) {
+return document.getElementById(i)
+}
+function toast(m) {
+$('toast').textContent=m;
+$('toast').classList.add('show');
+setTimeout(()=>$('toast').classList.remove('show'), 2500)
+}
+async function init() {
+try {
+let r=await Promise.all([RTApi.client('getRestaurantConfig',  {
+}), RTApi.client('getMenu',  {
+}), RTApi.client('getPromotions',  {
+}), RTApi.client('getTestimonials',  {
+}), RTApi.client('getPaymentsConfig',  {
+}).catch(()=>( {
+enabled:'No'
+}))]);
+cfg=r[0]|| {
+};
+items=r[1].items||[];
+cats=['All'].concat(r[1].categories||[]);
+promos=r[2]||[];
+revs=r[3]||[];
+payments=r[4]|| {
+};
+apply();
+renderCats();
+renderMenu();
+renderOffers();
+renderReviews();
+renderCart()
+}
+catch(e) {
+toast(e.message||String(e));
+$('menuGrid').innerHTML='<div class="card" style="padding:18px">Could not load menu.</div>'
+}
+}
+function apply() {
+document.title=cfg.name||'Restaurant';
+$('biz').textContent=cfg.name||'Restaurant';
+$('heroTitle').textContent=cfg.tagline||'Order fresh. Track fast.';
+$('heroText').textContent=cfg.aboutText||$('heroText').textContent;
+$('about').textContent=cfg.aboutText||'';
+$('phone').textContent=cfg.phone||'';
+$('email').textContent=cfg.email||'';
+$('addr').textContent=cfg.address||'';
+if(cfg.instagramUrl) {
+$('igLine').style.display='';
+$('ig').href=cfg.instagramUrl
+}
+if(cfg.heroImage)$('heroPanel').style.backgroundImage=`linear-gradient(#0001,#0008),url('${cfg.heroImage}')`
+}
+function sec(n, b) {
+document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));
+$('s-'+n).classList.add('active');
+document.querySelectorAll('.tab,.navlinks button').forEach(x=>x.classList.remove('active'));
+if(b)b.classList.add('active')
+}
+function renderCats() {
+$('catTabs').innerHTML=cats.map(c=>`<button class="tab ${c==cat?'active':''}" onclick="cat='${RTApi.esc(c)}';renderCats();renderMenu()">${RTApi.esc(c)}</button>`).join('')
+}
+function renderMenu() {
+let list=cat=='All'?items:items.filter(i=>i.category==cat);
+$('menuGrid').innerHTML=list.map(i=>`<article class="card">
+<div class="menuImg" style="background-image:url('${RTApi.esc(i.image||'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=1200&q=80')}')">
+</div>
+<div class="menuBody">
+  <span class="pill">${RTApi.esc(i.category)}</span>
+  <h3>${RTApi.esc(i.name)}</h3>
+  <p class="muted">${RTApi.esc(i.description||'')}</p>
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <div class="price">${RTApi.money(i.price)}</div>
+    <button class="btn brand" onclick="add('${RTApi.esc(i.id)}')">Add</button>
+  </div>
+</div>
+</article>`).join('')||'<div class="card" style="padding:18px">No items.</div>'
+}
+function renderOffers() {
+$('offers').innerHTML=promos.map(p=>`<div class="card" style="padding:22px">
+<span class="pill">${RTApi.esc(p.code)}</span>
+<h3>${RTApi.esc(p.title)}</h3>
+<p class="muted">${RTApi.esc(p.description)}</p>
+</div>`).join('')||'<div class="card" style="padding:22px">No offers.</div>'
+}
+function renderReviews() {
+$('reviews').innerHTML=revs.map(r=>`<div class="card" style="padding:22px">
+<div>${'★'.repeat(Number(r.rating||5))}</div>
+<p>${RTApi.esc(r.text)}</p>
+<b>${RTApi.esc(r.name)}</b>
+</div>`).join('')||'<div class="card" style="padding:22px">No reviews.</div>'
+}
+function add(id) {
+cart[id]=(cart[id]||0)+1;
+renderCart();
+toast('Added')
+}
+function qty(id, d) {
+cart[id]=(cart[id]||0)+d;
+if(cart[id]<=0)delete cart[id];
+renderCart()
+}
+function payload() {
+return Object.entries(cart).map(([id, qty])=>( {
+id, qty
+}))
+}
+function calc() {
+let rows=payload().map(x=>( {
+i:items.find(i=>String(i.id)==String(x.id)), q:x.qty
+})).filter(x=>x.i);
+let sub=rows.reduce((s, x)=>s+Number(x.i.price)*x.q, 0), fee=($('oType')&&$('oType').value=='delivery')?Number(cfg.fixedDeliveryFee||cfg.deliveryFee||0):0, tip=Number($('tip')?$('tip').value:0)||0, tax=sub*Number(cfg.taxRate||0);
+return {
+rows, sub, fee, tip, tax, total:sub+fee+tip+tax
+}
+}
+function renderCart() {
+let c=payload().reduce((s, x)=>s+x.qty, 0);
+$('cartCount').textContent=c;
+$('cartCount2').textContent=c;
+let t=calc();
+$('cartItems').innerHTML=t.rows.map(x=>`<div class="cartItem">
+<div>
+  <b>${RTApi.esc(x.i.name)}</b>
+  <div class="small">${RTApi.money(x.i.price)}</div>
+  <div class="qty">
+    <button onclick="qty('${x.i.id}',-1)">-</button> <b>${x.q}</b> <button onclick="qty('${x.i.id}',1)">+</button>
+  </div>
+</div>
+<b>${RTApi.money(Number(x.i.price)*x.q)}</b>
+</div>`).join('')||'<p class="muted">Cart empty.</p>';
+let h=`<p>Subtotal: <b>${RTApi.money(t.sub)}</b>
+</p>
+<p>Tax: <b>${RTApi.money(t.tax)}</b>
+</p>
+<p>Delivery Fee: <b>${RTApi.money(t.fee)}</b>
+</p>
+<p>Tip: <b>${RTApi.money(t.tip)}</b>
+</p>
+<h3>Total: ${RTApi.money(t.total)}</h3>`;
+  $('totals').innerHTML=h;
+  if($('checkoutTotals'))$('checkoutTotals').innerHTML=h
+  }
+  function openCart() {
+  $('drawer').classList.add('open')
+  }
+  function closeCart() {
+  $('drawer').classList.remove('open')
+  }
+  function checkout() {
+  if(!payload().length)return toast('Cart empty');
+  closeCart();
+  delFields();
+  renderCart();
+  $('checkoutModal').classList.add('open')
+  }
+  function delFields() {
+  let d=$('oType').value=='delivery';
+  $('dAddrWrap').style.display=d?'':'none';
+  $('dInstWrap').style.display=d?'':'none'
+  }
+  async function place() {
+  if(!payload().length)return toast('Cart empty');
+  if(!$('agree').checked)return toast('Accept agreement');
+  let p= {
+  customerName:$('cName').value, customerPhone:$('cPhone').value, customerEmail:$('cEmail').value, orderType:$('oType').value, deliveryAddress:$('dAddr').value, deliveryInstructions:$('dInst').value, customerNotes:$('notes').value, coupon:$('coupon').value, tip:Number($('tip').value||0), paymentMethod:$('payMethod').value, agreementAccepted:true, items:payload(), userAgent:navigator.userAgent
+  };
+  $('placeBtn').disabled=true;
+  try {
+  let r=await RTApi.client('createOrder', p);
+  cart= {
+  };
+  renderCart();
+  $('checkoutModal').classList.remove('open');
+  receipt(r.order, r.payments||payments)
+  }
+  catch(e) {
+  toast(e.message||String(e))
+  }
+  finally {
+  $('placeBtn').disabled=false
+  }
+  }
+  function receipt(o, p) {
+  payments=p||payments;
+  let rows=o.items.map(i=>`<tr>
+  <td>${i.quantity}x ${RTApi.esc(i.name)}</td>
+  <td>${RTApi.money(i.lineTotal)}</td>
+</tr>`).join('');
+$('receipt').innerHTML=`<span class="pill">${RTApi.esc(o.status)}</span>
+<h2>Order received</h2>
+<p class="muted">${RTApi.esc(o.orderId)}</p>
+<table>${rows}</table>
+<div class="card" style="padding:14px;margin-top:14px">
+  <p>Subtotal: <b>${RTApi.money(o.subtotal)}</b>
+  </p>
+  <p>Tax: <b>${RTApi.money(o.tax)}</b>
+  </p>
+  <p>Delivery Fee: <b>${RTApi.money(o.deliveryFee)}</b>
+  </p>
+  <h3>Total: ${RTApi.money(o.total)}</h3>
+</div>${o.pickupQRUrl?`<div class="card" style="padding:14px;margin-top:14px">
+<h3>Pickup QR</h3>
+<img src="${o.pickupQRUrl}" style="width:180px">
+</div>`:''}${o.trackingURL?`<div class="card" style="padding:14px;margin-top:14px">
+<a class="btn dark" target="_blank" href="${o.trackingURL}">Track order</a>
+</div>`:''}`;
+$('payBtn').style.display=payments.enabled=='Yes'&&payments.link?'':'none';
+$('payBtn').textContent=payments.buttonLabel||'Pay Securely';
+$('receiptModal').classList.add('open')
+}
+function payNow() {
+if(confirm(payments.redirectMessage||'You are being redirected to the restaurant secure payment page.'))window.open(payments.link, '_blank')
+}
 init();
 </script>
 </body>
