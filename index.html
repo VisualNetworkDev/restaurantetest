@@ -1,395 +1,338 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Restaurant Test</title>
-    <link rel="stylesheet" href="assets/restaurant.css">
-  </head>
-  <body>
-    <header class="topbar">
-      <div class="container nav">
-        <div class="brandmark">
-          <div class="logo">RT</div>
-          <div>
-            <div id="biz">Restaurant Test</div>
-            <div class="small">Order • Pickup • Delivery</div>
-          </div>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Restaurant Test</title>
+  <link rel="stylesheet" href="assets/restaurant.css">
+  <script src="assets/config.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container nav">
+      <a class="brand" href="index.html">
+        <span class="brand-mark">🍽️</span>
+        <span><span id="biz">Restaurant Test</span><small>Order • Pickup • Delivery</small></span>
+      </a>
+      <nav class="navlinks" aria-label="Main menu">
+        <button class="active" type="button" data-section="menu" onclick="showClientSection('menu', this)">Menu</button>
+        <button type="button" data-section="offers" onclick="showClientSection('offers', this)">Offers</button>
+        <button type="button" data-section="about" onclick="showClientSection('about', this)">About</button>
+        <button type="button" data-section="reviews" onclick="showClientSection('reviews', this)">Reviews</button>
+        <button type="button" data-section="contact" onclick="showClientSection('contact', this)">Contact</button>
+        <button class="btn secondary" type="button" onclick="openCart()">Cart <span id="cartCount">0</span></button>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero" id="hero">
+    <div class="container hero-inner">
+      <div>
+        <span class="pill">Fresh food • Mobile menu • Live tracking</span>
+        <h1 id="heroTitle">Order fresh. Track fast.</h1>
+        <p id="heroText">Browse the menu, place your order, choose pickup or delivery, and get a professional receipt with pickup QR or delivery tracking.</p>
+        <div class="hero-actions">
+          <button class="btn" type="button" onclick="showClientSection('menu')">Start order</button>
+          <button class="btn secondary" type="button" onclick="showClientSection('offers')">View offers</button>
         </div>
-        <nav class="navlinks">
-          <button class="active" onclick="sec('menu',this)">Menu</button>
-          <button onclick="sec('offers',this)">Offers</button>
-          <button onclick="sec('about',this)">About</button>
-          <button onclick="sec('reviews',this)">Reviews</button>
-          <button onclick="sec('contact',this)">Contact</button>
-        </nav>
-        <button class="btn dark" onclick="openCart()">Cart <span id="cartCount">0</span>
-        </button>
       </div>
-    </header>
-    <main class="container">
-      <section class="hero">
-        <div>
-          <span class="pill">Fresh food • Fast ordering • Live tracking</span>
-          <h1 id="heroTitle">Order fresh. Track fast.</h1>
-          <p id="heroText">Browse the menu, place your order, choose pickup or delivery, and receive professional receipts with QR pickup or delivery tracking.</p>
-          <button class="btn brand" onclick="sec('menu')">Start order</button>
-        </div>
-        <div id="heroPanel" class="heroPanel">
-          <div class="float">
-            <span class="pill">Today&apos;s menu</span>
-            <h2>Pickup or delivery</h2>
-            <p class="muted">Tracking activates when the driver starts delivery.</p>
-          </div>
-        </div>
-      </section>
-      <div class="tabs">
-        <button class="tab active" onclick="sec('menu',this)">Menu</button>
-        <button class="tab" onclick="sec('offers',this)">Promotions</button>
-        <button class="tab" onclick="sec('about',this)">About</button>
-        <button class="tab" onclick="sec('reviews',this)">Reviews</button>
-        <button class="tab" onclick="sec('contact',this)">Contact</button>
-      </div>
-      <section id="s-menu" class="section active">
-        <div id="catTabs" class="tabs">
-        </div>
-        <div id="menuGrid" class="grid menu">
-        </div>
-      </section>
-      <section id="s-offers" class="section">
-        <div id="offers" class="grid">
-        </div>
-      </section>
-      <section id="s-about" class="section">
-        <div class="card" style="padding:24px">
-          <h2>About us</h2>
-          <p id="about" class="muted">
-          </p>
-        </div>
-      </section>
-      <section id="s-reviews" class="section">
-        <div id="reviews" class="grid">
-        </div>
-      </section>
-      <section id="s-contact" class="section">
-        <div class="card" style="padding:24px">
-          <h2>Contact</h2>
-          <p>
-            <b>Phone:</b> <span id="phone">
-            </span>
-          </p>
-          <p>
-            <b>Email:</b> <span id="email">
-            </span>
-          </p>
-          <p>
-            <b>Address:</b> <span id="addr">
-            </span>
-          </p>
-          <p id="igLine" style="display:none">
-            <b>Instagram:</b> <a id="ig" target="_blank">Visit Instagram</a>
-            </p>
-          </div>
-        </section>
-      </main>
-      <button class="cartBtn" onclick="openCart()">🛒 <span id="cartCount2">0</span>
-      </button>
-      <aside id="drawer" class="drawer">
-        <div class="drawerHead">
-          <b>Your order</b>
-          <button class="btn light" onclick="closeCart()">Close</button>
-        </div>
-        <div class="drawerBody" id="cartItems">
-        </div>
-        <div class="drawerFoot">
-          <div id="totals">
-          </div>
-          <button class="btn brand" style="width:100%" onclick="checkout()">Checkout</button>
+      <aside class="order-widget">
+        <span class="pill" style="background:#fff8ef; color:var(--brand); border-color:var(--line);">Today&apos;s order flow</span>
+        <h3>Pickup or delivery</h3>
+        <p class="section-sub">The customer menu feels like a mobile app. Pickup gets a QR; delivery gets a live tracking link.</p>
+        <div class="mini-stat">
+          <div><b>1</b><span class="section-sub">Pick items</span></div>
+          <div><b>2</b><span class="section-sub">Checkout</span></div>
+          <div><b>3</b><span class="section-sub">Track</span></div>
         </div>
       </aside>
-      <div id="checkoutModal" class="modal">
-        <div class="modalCard">
-          <h2>Checkout</h2>
-          <div class="formGrid">
-            <label class="field">Name<input id="cName">
-            </label>
-            <label class="field">Phone<input id="cPhone">
-            </label>
-            <label class="field full">Email<input id="cEmail">
-            </label>
-            <label class="field">Order type<select id="oType" onchange="delFields();renderCart()">
-              <option value="pickup">Pickup</option>
-              <option value="delivery">Delivery</option>
-            </select>
-          </label>
-          <label class="field">Tip<input id="tip" type="number" step="0.01" value="0" oninput="renderCart()">
-          </label>
-          <label id="dAddrWrap" class="field full" style="display:none">Delivery address<input id="dAddr">
-          </label>
-          <label id="dInstWrap" class="field full" style="display:none">Delivery instructions<textarea id="dInst">
-          </textarea>
-        </label>
-        <label class="field">Coupon<input id="coupon">
-        </label>
-        <label class="field">Payment<select id="payMethod">
-          <option>Not selected</option>
-          <option>Payment link</option>
-          <option>Cash</option>
-          <option>Zelle</option>
-          <option>Cash App</option>
-        </select>
-      </label>
-      <label class="field full">Notes<textarea id="notes">
-      </textarea>
-    </label>
-    <label class="field full" style="display:flex;gap:10px">
-      <input id="agree" type="checkbox" style="width:auto">
-      <span>I confirm my order information is correct.</span>
-    </label>
-  </div>
-  <div id="checkoutTotals" class="card" style="padding:14px;margin-top:14px">
-  </div>
-  <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px">
-    <button class="btn light" onclick="checkoutModal.classList.remove('open')">Cancel</button>
-    <button id="placeBtn" class="btn brand" onclick="place()">Place order</button>
-  </div>
-</div>
-</div>
-<div id="receiptModal" class="modal">
-  <div class="modalCard">
-    <div id="receipt">
     </div>
-    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px">
-      <button class="btn light" onclick="receiptModal.classList.remove('open')">Close</button>
-      <button id="payBtn" class="btn dark" style="display:none" onclick="payNow()">Pay Securely</button>
+  </section>
+
+  <main class="container">
+    <section id="client-menu" class="client-section active section">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">Menu</h2>
+          <p class="section-sub">Select a category, add items to the cart, and complete pickup or delivery checkout.</p>
+        </div>
+      </div>
+      <div id="catTabs" class="category-row"></div>
+      <div id="menuGrid" class="menu-grid"></div>
+    </section>
+
+    <section id="client-offers" class="client-section section">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">Promotions</h2>
+          <p class="section-sub">Active offers configured from the restaurant admin.</p>
+        </div>
+      </div>
+      <div id="offers" class="grid grid-3"></div>
+    </section>
+
+    <section id="client-about" class="client-section section">
+      <div class="card contact-card">
+        <h2 class="section-title">About us</h2>
+        <p id="about" class="section-sub"></p>
+      </div>
+    </section>
+
+    <section id="client-reviews" class="client-section section">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">Testimonials</h2>
+          <p class="section-sub">Customer comments shown from the admin configuration.</p>
+        </div>
+      </div>
+      <div id="reviews" class="grid grid-3"></div>
+    </section>
+
+    <section id="client-contact" class="client-section section">
+      <div class="card contact-card">
+        <h2 class="section-title">Contact</h2>
+        <div class="info-list">
+          <div class="info-row"><span>Phone</span><strong id="phone"></strong></div>
+          <div class="info-row"><span>Email</span><strong id="email"></strong></div>
+          <div class="info-row"><span>Address</span><strong id="addr"></strong></div>
+          <div class="info-row" id="igLine" style="display:none;"><span>Instagram</span><a id="ig" target="_blank"><strong>Visit Instagram</strong></a></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <button class="cart-fab" type="button" onclick="openCart()">🛒 Cart <span id="cartCount2">0</span></button>
+
+  <aside id="drawer" class="drawer" aria-hidden="true">
+    <div class="drawer-backdrop" onclick="closeCart()"></div>
+    <div class="drawer-panel">
+      <div class="drawer-head">
+        <div>
+          <strong>Your cart</strong>
+          <div class="section-sub">Review order and checkout</div>
+        </div>
+        <button class="btn secondary" type="button" onclick="closeCart()">Close</button>
+      </div>
+      <div class="drawer-body">
+        <div id="cartItems"></div>
+        <div id="totals" class="totals"></div>
+
+        <div class="checkout-block">
+          <h3 style="margin-top:0;">Checkout</h3>
+          <div class="split">
+            <label class="field"><span>Order type</span><select id="oType" onchange="toggleDeliveryFields(); renderCart();"><option value="pickup">Pickup</option><option value="delivery">Delivery</option></select></label>
+            <label class="field"><span>Tip</span><input id="tip" type="number" min="0" step="0.01" value="0" oninput="renderCart()"></label>
+          </div>
+          <div id="deliveryFields" style="display:none;">
+            <label class="field"><span>Delivery address</span><input id="dAddr" placeholder="Street, city, state, ZIP"></label>
+            <label class="field"><span>Delivery instructions</span><textarea id="dInst" placeholder="Apartment, gate code, notes..."></textarea></label>
+          </div>
+          <div class="split">
+            <label class="field"><span>Name</span><input id="cName" autocomplete="name"></label>
+            <label class="field"><span>Phone</span><input id="cPhone" autocomplete="tel"></label>
+          </div>
+          <label class="field"><span>Email</span><input id="cEmail" type="email" autocomplete="email"></label>
+          <div class="split">
+            <label class="field"><span>Coupon</span><input id="coupon" placeholder="Optional"></label>
+            <label class="field"><span>Payment</span><select id="payMethod"><option>Not selected</option><option>Payment link</option><option>Cash</option><option>Zelle</option><option>Cash App</option></select></label>
+          </div>
+          <label class="field"><span>Notes</span><textarea id="notes" placeholder="No onions, extra sauce, etc."></textarea></label>
+          <label class="field" style="display:flex; align-items:flex-start; gap:10px;"><input id="agree" type="checkbox" style="width:auto; margin-top:4px;"><span>I confirm my order information is correct.</span></label>
+          <button id="placeBtn" class="btn full" type="button" onclick="place()">Place order</button>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div id="receiptModal" class="modal">
+    <div class="modal-card">
+      <div id="receipt"></div>
+      <div class="toolbar" style="justify-content:flex-end; margin-top:18px;">
+        <button class="btn secondary" type="button" onclick="receiptModal.classList.remove('open')">Close</button>
+        <button id="payBtn" class="btn dark" style="display:none" type="button" onclick="payNow()">Pay Securely</button>
+      </div>
     </div>
   </div>
-</div>
-<div id="toast" class="toast">
-</div>
-<script src="assets/config.js">
-</script>
-<script>
-let cfg= {
-}, items=[], cats=[], promos=[], revs=[], payments= {
-enabled:'No'
-}, cart= {
-}, cat='All';
-function $(i) {
-return document.getElementById(i)
-}
-function toast(m) {
-$('toast').textContent=m;
-$('toast').classList.add('show');
-setTimeout(()=>$('toast').classList.remove('show'), 2500)
-}
-async function init() {
-try {
-let r=await Promise.all([RTApi.client('getRestaurantConfig',  {
-}), RTApi.client('getMenu',  {
-}), RTApi.client('getPromotions',  {
-}), RTApi.client('getTestimonials',  {
-}), RTApi.client('getPaymentsConfig',  {
-}).catch(()=>( {
-enabled:'No'
-}))]);
-cfg=r[0]|| {
-};
-items=r[1].items||[];
-cats=['All'].concat(r[1].categories||[]);
-promos=r[2]||[];
-revs=r[3]||[];
-payments=r[4]|| {
-};
-apply();
-renderCats();
-renderMenu();
-renderOffers();
-renderReviews();
-renderCart()
-}
-catch(e) {
-toast(e.message||String(e));
-$('menuGrid').innerHTML='<div class="card" style="padding:18px">Could not load menu.</div>'
-}
-}
-function apply() {
-document.title=cfg.name||'Restaurant';
-$('biz').textContent=cfg.name||'Restaurant';
-$('heroTitle').textContent=cfg.tagline||'Order fresh. Track fast.';
-$('heroText').textContent=cfg.aboutText||$('heroText').textContent;
-$('about').textContent=cfg.aboutText||'';
-$('phone').textContent=cfg.phone||'';
-$('email').textContent=cfg.email||'';
-$('addr').textContent=cfg.address||'';
-if(cfg.instagramUrl) {
-$('igLine').style.display='';
-$('ig').href=cfg.instagramUrl
-}
-if(cfg.heroImage)$('heroPanel').style.backgroundImage=`linear-gradient(#0001,#0008),url('${cfg.heroImage}')`
-}
-function sec(n, b) {
-document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));
-$('s-'+n).classList.add('active');
-document.querySelectorAll('.tab,.navlinks button').forEach(x=>x.classList.remove('active'));
-if(b)b.classList.add('active')
-}
-function renderCats() {
-$('catTabs').innerHTML=cats.map(c=>`<button class="tab ${c==cat?'active':''}" onclick="cat='${RTApi.esc(c)}';renderCats();renderMenu()">${RTApi.esc(c)}</button>`).join('')
-}
-function renderMenu() {
-let list=cat=='All'?items:items.filter(i=>i.category==cat);
-$('menuGrid').innerHTML=list.map(i=>`<article class="card">
-<div class="menuImg" style="background-image:url('${RTApi.esc(i.image||'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=1200&q=80')}')">
-</div>
-<div class="menuBody">
-  <span class="pill">${RTApi.esc(i.category)}</span>
-  <h3>${RTApi.esc(i.name)}</h3>
-  <p class="muted">${RTApi.esc(i.description||'')}</p>
-  <div style="display:flex;justify-content:space-between;align-items:center">
-    <div class="price">${RTApi.money(i.price)}</div>
-    <button class="btn brand" onclick="add('${RTApi.esc(i.id)}')">Add</button>
-  </div>
-</div>
-</article>`).join('')||'<div class="card" style="padding:18px">No items.</div>'
-}
-function renderOffers() {
-$('offers').innerHTML=promos.map(p=>`<div class="card" style="padding:22px">
-<span class="pill">${RTApi.esc(p.code)}</span>
-<h3>${RTApi.esc(p.title)}</h3>
-<p class="muted">${RTApi.esc(p.description)}</p>
-</div>`).join('')||'<div class="card" style="padding:22px">No offers.</div>'
-}
-function renderReviews() {
-$('reviews').innerHTML=revs.map(r=>`<div class="card" style="padding:22px">
-<div>${'★'.repeat(Number(r.rating||5))}</div>
-<p>${RTApi.esc(r.text)}</p>
-<b>${RTApi.esc(r.name)}</b>
-</div>`).join('')||'<div class="card" style="padding:22px">No reviews.</div>'
-}
-function add(id) {
-cart[id]=(cart[id]||0)+1;
-renderCart();
-toast('Added')
-}
-function qty(id, d) {
-cart[id]=(cart[id]||0)+d;
-if(cart[id]<=0)delete cart[id];
-renderCart()
-}
-function payload() {
-return Object.entries(cart).map(([id, qty])=>( {
-id, qty
-}))
-}
-function calc() {
-let rows=payload().map(x=>( {
-i:items.find(i=>String(i.id)==String(x.id)), q:x.qty
-})).filter(x=>x.i);
-let sub=rows.reduce((s, x)=>s+Number(x.i.price)*x.q, 0), fee=($('oType')&&$('oType').value=='delivery')?Number(cfg.fixedDeliveryFee||cfg.deliveryFee||0):0, tip=Number($('tip')?$('tip').value:0)||0, tax=sub*Number(cfg.taxRate||0);
-return {
-rows, sub, fee, tip, tax, total:sub+fee+tip+tax
-}
-}
-function renderCart() {
-let c=payload().reduce((s, x)=>s+x.qty, 0);
-$('cartCount').textContent=c;
-$('cartCount2').textContent=c;
-let t=calc();
-$('cartItems').innerHTML=t.rows.map(x=>`<div class="cartItem">
-<div>
-  <b>${RTApi.esc(x.i.name)}</b>
-  <div class="small">${RTApi.money(x.i.price)}</div>
-  <div class="qty">
-    <button onclick="qty('${x.i.id}',-1)">-</button> <b>${x.q}</b> <button onclick="qty('${x.i.id}',1)">+</button>
-  </div>
-</div>
-<b>${RTApi.money(Number(x.i.price)*x.q)}</b>
-</div>`).join('')||'<p class="muted">Cart empty.</p>';
-let h=`<p>Subtotal: <b>${RTApi.money(t.sub)}</b>
-</p>
-<p>Tax: <b>${RTApi.money(t.tax)}</b>
-</p>
-<p>Delivery Fee: <b>${RTApi.money(t.fee)}</b>
-</p>
-<p>Tip: <b>${RTApi.money(t.tip)}</b>
-</p>
-<h3>Total: ${RTApi.money(t.total)}</h3>`;
-  $('totals').innerHTML=h;
-  if($('checkoutTotals'))$('checkoutTotals').innerHTML=h
-  }
-  function openCart() {
-  $('drawer').classList.add('open')
-  }
-  function closeCart() {
-  $('drawer').classList.remove('open')
-  }
-  function checkout() {
-  if(!payload().length)return toast('Cart empty');
-  closeCart();
-  delFields();
-  renderCart();
-  $('checkoutModal').classList.add('open')
-  }
-  function delFields() {
-  let d=$('oType').value=='delivery';
-  $('dAddrWrap').style.display=d?'':'none';
-  $('dInstWrap').style.display=d?'':'none'
-  }
-  async function place() {
-  if(!payload().length)return toast('Cart empty');
-  if(!$('agree').checked)return toast('Accept agreement');
-  let p= {
-  customerName:$('cName').value, customerPhone:$('cPhone').value, customerEmail:$('cEmail').value, orderType:$('oType').value, deliveryAddress:$('dAddr').value, deliveryInstructions:$('dInst').value, customerNotes:$('notes').value, coupon:$('coupon').value, tip:Number($('tip').value||0), paymentMethod:$('payMethod').value, agreementAccepted:true, items:payload(), userAgent:navigator.userAgent
-  };
-  $('placeBtn').disabled=true;
-  try {
-  let r=await RTApi.client('createOrder', p);
-  cart= {
-  };
-  renderCart();
-  $('checkoutModal').classList.remove('open');
-  receipt(r.order, r.payments||payments)
-  }
-  catch(e) {
-  toast(e.message||String(e))
-  }
-  finally {
-  $('placeBtn').disabled=false
-  }
-  }
-  function receipt(o, p) {
-  payments=p||payments;
-  let rows=o.items.map(i=>`<tr>
-  <td>${i.quantity}x ${RTApi.esc(i.name)}</td>
-  <td>${RTApi.money(i.lineTotal)}</td>
-</tr>`).join('');
-$('receipt').innerHTML=`<span class="pill">${RTApi.esc(o.status)}</span>
-<h2>Order received</h2>
-<p class="muted">${RTApi.esc(o.orderId)}</p>
-<table>${rows}</table>
-<div class="card" style="padding:14px;margin-top:14px">
-  <p>Subtotal: <b>${RTApi.money(o.subtotal)}</b>
-  </p>
-  <p>Tax: <b>${RTApi.money(o.tax)}</b>
-  </p>
-  <p>Delivery Fee: <b>${RTApi.money(o.deliveryFee)}</b>
-  </p>
-  <h3>Total: ${RTApi.money(o.total)}</h3>
-</div>${o.pickupQRUrl?`<div class="card" style="padding:14px;margin-top:14px">
-<h3>Pickup QR</h3>
-<img src="${o.pickupQRUrl}" style="width:180px">
-</div>`:''}${o.trackingURL?`<div class="card" style="padding:14px;margin-top:14px">
-<a class="btn dark" target="_blank" href="${o.trackingURL}">Track order</a>
-</div>`:''}`;
-$('payBtn').style.display=payments.enabled=='Yes'&&payments.link?'':'none';
-$('payBtn').textContent=payments.buttonLabel||'Pay Securely';
-$('receiptModal').classList.add('open')
-}
-function payNow() {
-if(confirm(payments.redirectMessage||'You are being redirected to the restaurant secure payment page.'))window.open(payments.link, '_blank')
-}
-init();
-</script>
+
+  <footer class="footer">
+    <div class="container footer-grid">
+      <div>
+        <strong id="footerBusiness">Restaurant Test</strong>
+        <p class="section-sub" style="color:#f7e5cd;">Online ordering, pickup QR, admin dashboard, and live delivery tracking.</p>
+      </div>
+      <div><strong id="licenseName">Restaurant Test Ordering System</strong><br><span>Licensed / Powered by <span id="licenseBy">Visual Event Network</span></span></div>
+      <div><span id="footerAddress"></span><br><span id="footerPhone"></span></div>
+    </div>
+  </footer>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    let cfg = {};
+    let items = [];
+    let cats = [];
+    let promos = [];
+    let revs = [];
+    let payments = { enabled: 'No' };
+    let cart = {};
+    let cat = 'All';
+
+    function $(id){ return document.getElementById(id); }
+    function toast(message){ const box = $('toast'); box.textContent = message; box.classList.add('show'); setTimeout(() => box.classList.remove('show'), 2500); }
+
+    async function init(){
+      try {
+        const result = await Promise.all([
+          RTApi.client('getRestaurantConfig', {}),
+          RTApi.client('getMenu', {}),
+          RTApi.client('getPromotions', {}),
+          RTApi.client('getTestimonials', {}),
+          RTApi.client('getPaymentsConfig', {}).catch(() => ({ enabled: 'No' }))
+        ]);
+        cfg = result[0] || {};
+        items = (result[1] && result[1].items) || [];
+        cats = ['All'].concat((result[1] && result[1].categories) || []);
+        promos = result[2] || [];
+        revs = result[3] || [];
+        payments = result[4] || { enabled: 'No' };
+        applyConfig();
+        renderCats();
+        renderMenu();
+        renderOffers();
+        renderReviews();
+        renderCart();
+      } catch(error) {
+        toast(error.message || String(error));
+        $('menuGrid').innerHTML = '<div class="empty">Could not load menu. Check Client API URL.</div>';
+      }
+    }
+
+    function applyConfig(){
+      const name = cfg.name || cfg.businessName || 'Restaurant Test';
+      document.title = name;
+      $('biz').textContent = name;
+      $('footerBusiness').textContent = name;
+      $('heroTitle').textContent = cfg.tagline || 'Order fresh. Track fast.';
+      $('heroText').textContent = cfg.aboutText || $('heroText').textContent;
+      $('about').textContent = cfg.aboutText || 'Fresh food, easy pickup, smooth delivery, and a clean ordering experience.';
+      $('phone').textContent = cfg.phone || '';
+      $('email').textContent = cfg.email || '';
+      $('addr').textContent = cfg.address || '';
+      $('footerAddress').textContent = cfg.address || '';
+      $('footerPhone').textContent = cfg.phone || '';
+      $('licenseName').textContent = cfg.licenseName || window.RESTAURANT_SYSTEM.licenseName || 'Restaurant Test Ordering System';
+      $('licenseBy').textContent = cfg.licenseBy || window.RESTAURANT_SYSTEM.licenseBy || 'Visual Event Network';
+      if(cfg.instagramUrl){ $('igLine').style.display = ''; $('ig').href = cfg.instagramUrl; }
+      if(cfg.heroImage){ document.documentElement.style.setProperty('--hero-image', "url('" + cfg.heroImage + "')"); }
+    }
+
+    function showClientSection(name, button){
+      document.querySelectorAll('.client-section').forEach(section => section.classList.remove('active'));
+      $('client-' + name).classList.add('active');
+      document.querySelectorAll('.navlinks button[data-section]').forEach(btn => btn.classList.remove('active'));
+      const navButton = button || document.querySelector('.navlinks button[data-section="' + name + '"]');
+      if(navButton) navButton.classList.add('active');
+      window.scrollTo({ top: document.querySelector('main').offsetTop - 72, behavior: 'smooth' });
+    }
+
+    function renderCats(){
+      $('catTabs').innerHTML = cats.map(category => `<button class="cat-chip ${category === cat ? 'active' : ''}" type="button" onclick="cat='${RTApi.esc(category)}'; renderCats(); renderMenu();">${RTApi.esc(category)}</button>`).join('');
+    }
+
+    function renderMenu(){
+      const list = cat === 'All' ? items : items.filter(item => item.category === cat);
+      $('menuGrid').innerHTML = list.map(item => {
+        const img = item.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=1200&q=80';
+        return `<article class="card menu-item"><div class="menu-img" style="background-image:url('${RTApi.esc(img)}')"></div><div class="menu-body"><span class="badge dark">${RTApi.esc(item.category || 'Menu')}</span><h3>${RTApi.esc(item.name)}</h3><p>${RTApi.esc(item.description || '')}</p><div class="price-row"><div class="price">${RTApi.money(item.price)}</div><button class="btn" type="button" onclick="add('${RTApi.esc(item.id)}')">Add</button></div></div></article>`;
+      }).join('') || '<div class="empty">No menu items available.</div>';
+    }
+
+    function renderOffers(){
+      $('offers').innerHTML = promos.map(promo => `<div class="card promo-card"><span class="promo-code">${RTApi.esc(promo.code || '')}</span><h3>${RTApi.esc(promo.title || '')}</h3><p class="section-sub">${RTApi.esc(promo.description || '')}</p></div>`).join('') || '<div class="empty">No active promotions right now.</div>';
+    }
+
+    function renderReviews(){
+      $('reviews').innerHTML = revs.map(review => `<div class="card testimonial"><div class="stars">${'★'.repeat(Number(review.rating || 5))}</div><p>${RTApi.esc(review.text || '')}</p><strong>${RTApi.esc(review.name || '')}</strong></div>`).join('') || '<div class="empty">No testimonials yet.</div>';
+    }
+
+    function add(id){ cart[id] = (cart[id] || 0) + 1; renderCart(); openCart(); toast('Added to cart'); }
+    function qty(id, delta){ cart[id] = (cart[id] || 0) + delta; if(cart[id] <= 0) delete cart[id]; renderCart(); }
+    function payload(){ return Object.entries(cart).map(([id, qty]) => ({ id, qty })); }
+
+    function calc(){
+      const rows = payload().map(entry => ({ item: items.find(item => String(item.id) === String(entry.id)), qty: entry.qty })).filter(row => row.item);
+      const subtotal = rows.reduce((sum, row) => sum + Number(row.item.price || 0) * row.qty, 0);
+      const isDelivery = $('oType') && $('oType').value === 'delivery';
+      const deliveryFee = isDelivery ? Number(cfg.fixedDeliveryFee || cfg.deliveryFee || 0) : 0;
+      const tip = Number($('tip') ? $('tip').value : 0) || 0;
+      const tax = subtotal * Number(cfg.taxRate || 0);
+      return { rows, subtotal, deliveryFee, tip, tax, total: subtotal + deliveryFee + tip + tax };
+    }
+
+    function renderCart(){
+      const count = payload().reduce((sum, item) => sum + item.qty, 0);
+      $('cartCount').textContent = count;
+      $('cartCount2').textContent = count;
+      const totals = calc();
+      $('cartItems').innerHTML = totals.rows.map(row => `<div class="cart-line"><div><b>${RTApi.esc(row.item.name)}</b><span class="section-sub">${RTApi.money(row.item.price)} each</span><div class="qty"><button type="button" onclick="qty('${RTApi.esc(row.item.id)}', -1)">-</button><strong>${row.qty}</strong><button type="button" onclick="qty('${RTApi.esc(row.item.id)}', 1)">+</button></div></div><strong>${RTApi.money(Number(row.item.price || 0) * row.qty)}</strong></div>`).join('') || '<div class="empty">Your cart is empty.</div>';
+      $('totals').innerHTML = `<div class="total-line"><span>Subtotal</span><strong>${RTApi.money(totals.subtotal)}</strong></div><div class="total-line"><span>Tax</span><strong>${RTApi.money(totals.tax)}</strong></div><div class="total-line"><span>Delivery Fee</span><strong>${RTApi.money(totals.deliveryFee)}</strong></div><div class="total-line"><span>Tip</span><strong>${RTApi.money(totals.tip)}</strong></div><div class="total-line grand"><span>Total</span><strong>${RTApi.money(totals.total)}</strong></div>`;
+    }
+
+    function openCart(){ $('drawer').classList.add('open'); $('drawer').setAttribute('aria-hidden', 'false'); }
+    function closeCart(){ $('drawer').classList.remove('open'); $('drawer').setAttribute('aria-hidden', 'true'); }
+    function toggleDeliveryFields(){ $('deliveryFields').style.display = $('oType').value === 'delivery' ? 'block' : 'none'; }
+
+    async function place(){
+      if(!payload().length){ toast('Cart is empty'); return; }
+      if(!$('agree').checked){ toast('Accept the agreement first'); return; }
+      const orderType = $('oType').value;
+      if(orderType === 'delivery' && !$('dAddr').value.trim()){ toast('Delivery address is required'); return; }
+      const request = {
+        customerName: $('cName').value,
+        customerPhone: $('cPhone').value,
+        customerEmail: $('cEmail').value,
+        orderType,
+        deliveryAddress: $('dAddr').value,
+        deliveryInstructions: $('dInst').value,
+        customerNotes: $('notes').value,
+        coupon: $('coupon').value,
+        tip: Number($('tip').value || 0),
+        paymentMethod: $('payMethod').value,
+        agreementAccepted: true,
+        items: payload(),
+        userAgent: navigator.userAgent
+      };
+      $('placeBtn').disabled = true;
+      $('placeBtn').textContent = 'Placing order...';
+      try {
+        const result = await RTApi.client('createOrder', request);
+        cart = {};
+        renderCart();
+        closeCart();
+        renderReceipt(result.order, result.payments || payments);
+      } catch(error) {
+        toast(error.message || String(error));
+      } finally {
+        $('placeBtn').disabled = false;
+        $('placeBtn').textContent = 'Place order';
+      }
+    }
+
+    function renderReceipt(order, paymentConfig){
+      payments = paymentConfig || payments || { enabled: 'No' };
+      const rows = (order.items || []).map(item => `<div class="cart-line"><span>${RTApi.esc(item.quantity)}x ${RTApi.esc(item.name)}</span><strong>${RTApi.money(item.lineTotal || (item.price * item.quantity))}</strong></div>`).join('');
+      $('receipt').innerHTML = `<div class="receipt"><div class="receipt-head"><span class="pill">${RTApi.esc(order.status)}</span><h2>Order received</h2><p>Order ID: ${RTApi.esc(order.orderId)}</p></div><div class="receipt-body">${rows}<div class="totals"><div class="total-line"><span>Subtotal</span><strong>${RTApi.money(order.subtotal)}</strong></div><div class="total-line"><span>Discount</span><strong>-${RTApi.money(order.discount)}</strong></div><div class="total-line"><span>Tax</span><strong>${RTApi.money(order.tax)}</strong></div><div class="total-line"><span>Delivery Fee</span><strong>${RTApi.money(order.deliveryFee)}</strong></div><div class="total-line"><span>Tip</span><strong>${RTApi.money(order.tip)}</strong></div><div class="total-line grand"><span>Total</span><strong>${RTApi.money(order.total)}</strong></div></div>${order.pickupQRUrl ? `<div class="qr-box"><h3>Pickup QR</h3><img src="${RTApi.esc(order.pickupQRUrl)}" width="180" height="180" alt="Pickup QR"><p class="section-sub">Token: ${RTApi.esc(order.pickupToken)}</p></div>` : ''}${order.trackingURL ? `<a class="btn dark" target="_blank" href="${RTApi.esc(order.trackingURL)}">Track delivery</a>` : ''}</div></div>`;
+      $('payBtn').style.display = payments.enabled === 'Yes' && payments.link ? '' : 'none';
+      $('payBtn').textContent = payments.buttonLabel || 'Pay Securely';
+      $('receiptModal').classList.add('open');
+    }
+
+    function payNow(){
+      if(!payments || !payments.link) return;
+      if(confirm(payments.redirectMessage || 'You are being redirected to the restaurant secure payment page.')) window.open(payments.link, '_blank');
+    }
+
+    init();
+  </script>
 </body>
 </html>
