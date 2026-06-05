@@ -1,6 +1,4 @@
-/* Restaurant Test - GitHub Pages frontend configuration
-   Replace the three API URLs after deploying each Apps Script web app.
-   Keep this file in GitHub so all pages use the same endpoints. */
+/* Restaurant Test - shared frontend configuration */
 window.RESTAURANT_SYSTEM = {
   appName: 'Restaurant Test Ordering System',
   businessName: 'Restaurant Test',
@@ -16,7 +14,7 @@ window.RESTAURANT_SYSTEM = {
   deliveryApiUrl: 'https://script.google.com/macros/s/AKfycbw4LhlOWZ1oK0UnuhRTCwd7ce2cEXw_DpiSru2Oaq29A6_qklb6xABv1fsLzuhxHjO-8w/exec',
 
   trackingPage: 'tracking.html',
-  deliveryPage: 'delivery.html',
+  deliveryPage: 'admin.html',
   adminPage: 'admin.html',
   indexPage: 'index.html'
 };
@@ -24,8 +22,8 @@ window.RESTAURANT_SYSTEM = {
 (function(){
   function buildUrl(baseUrl, params){
     const query = Object.entries(params)
-      .filter(([,v]) => v !== undefined && v !== null && v !== '')
-      .map(([k,v]) => encodeURIComponent(k) + '=' + encodeURIComponent(typeof v === 'string' ? v : JSON.stringify(v)))
+      .filter(([, value]) => value !== undefined && value !== null && value !== '')
+      .map(([key, value]) => encodeURIComponent(key) + '=' + encodeURIComponent(typeof value === 'string' ? value : JSON.stringify(value)))
       .join('&');
     return baseUrl + (baseUrl.includes('?') ? '&' : '?') + query;
   }
@@ -36,27 +34,36 @@ window.RESTAURANT_SYSTEM = {
         reject(new Error('API URL is not configured yet in assets/config.js'));
         return;
       }
+
       const callback = 'rt_cb_' + Date.now() + '_' + Math.random().toString(36).slice(2);
       const script = document.createElement('script');
       const timer = setTimeout(() => {
         cleanup();
         reject(new Error('API request timed out'));
       }, 30000);
+
       function cleanup(){
         clearTimeout(timer);
-        try{ delete window[callback]; }catch(e){ window[callback] = undefined; }
-        script.remove();
+        try { delete window[callback]; } catch(err) { window[callback] = undefined; }
+        if(script.parentNode) script.parentNode.removeChild(script);
       }
-      window[callback] = (response) => {
+
+      window[callback] = response => {
         cleanup();
         if(response && response.success) resolve(response.data || response);
         else reject(new Error((response && response.message) || 'API error'));
       };
+
       script.onerror = () => {
         cleanup();
         reject(new Error('Could not reach API'));
       };
-      script.src = buildUrl(baseUrl, { action, callback, payload });
+
+      script.src = buildUrl(baseUrl, {
+        action: action,
+        callback: callback,
+        payload: JSON.stringify(payload || {})
+      });
       document.body.appendChild(script);
     });
   }
@@ -66,6 +73,14 @@ window.RESTAURANT_SYSTEM = {
     admin(action, payload){ return jsonp(window.RESTAURANT_SYSTEM.adminApiUrl, action, payload); },
     delivery(action, payload){ return jsonp(window.RESTAURANT_SYSTEM.deliveryApiUrl, action, payload); },
     money(value){ return '$' + (Number(value || 0)).toFixed(2); },
-    esc(value){ return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
+    esc(value){
+      return String(value ?? '').replace(/[&<>"']/g, character => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      }[character]));
+    }
   };
 })();
