@@ -1,40 +1,171 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Delivery · Restaurant Test</title>
-<link rel="stylesheet" href="assets/restaurant.css">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="assets/config.js"></script>
-</head>
-<body class="delivery-shell">
-<div id="loginScreen" class="login-screen"><form class="login-box" onsubmit="login(event)"><div class="brand" style="color:var(--ink);margin-bottom:18px"><span class="brand-mark">🛵</span><span>Delivery Portal</span></div><p class="section-sub">Lightweight page for assigned deliveries and consent-based location sharing.</p><label class="field"><span>Email</span><input id="loginEmail" type="email" required></label><label class="field"><span>Password</span><input id="loginPassword" type="password" required></label><button class="btn" style="width:100%">Sign in</button></form></div>
-<div id="app" style="display:none"><header class="delivery-hero"><div class="container"><div class="brand"><span class="brand-mark">🛵</span><span>Delivery GPS</span></div><p>Location updates run only while this page is open and permission is granted.</p></div></header><main class="container section"><div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap"><h1 class="section-title" style="margin:0">Assigned deliveries</h1><div><button class="btn secondary" onclick="loadOrders()">Refresh</button> <button class="btn dark" onclick="logout()">Sign out</button></div></div><div id="orders" style="margin-top:22px"></div><div class="grid grid-2" style="margin-top:24px"><div class="card delivery-card"><h2>Live map</h2><div id="map" class="map"></div></div><div class="card delivery-card"><h2>Location status</h2><p id="gpsStatus" class="section-sub">Location sharing is stopped.</p><p class="section-sub">Use Start delivery to request GPS permission and share updates with the customer tracking page.</p></div></div></main></div>
-<div id="toast" class="toast"></div>
-<script>
-const cfg=window.RESTAURANT_SYSTEM||{};
-const demo=[{orderId:'RT-1001',customerName:'Maria Lopez',customerPhone:'904-555-0101',address:'Jacksonville, FL',status:'Ready for delivery',paymentStatus:'Payment pending',total:36.45,items:[{name:'Grilled Chicken Bowl',quantity:2},{name:'Passion Fruit Juice',quantity:1}]}];
-const state={token:localStorage.getItem('rt_delivery_session')||'',orders:[],map:null,marker:null,watchId:null,timer:null,last:null,seconds:Number(cfg.locationUpdateSeconds||30)};
-const esc=v=>RTApi.esc(v),money=v=>RTApi.money(v);
-function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500)}
-async function call(action,payload={}){payload.sessionToken=state.token;return RTApi.delivery(action,payload)}
-async function login(e){e.preventDefault();try{const r=await call('login',{email:loginEmail.value,password:loginPassword.value});state.token=r.sessionToken||r.token||'demo-driver';localStorage.setItem('rt_delivery_session',state.token);await loadOrders()}catch(err){state.token='demo-driver';localStorage.setItem('rt_delivery_session',state.token);toast('Demo mode: configure Delivery API in assets/config.js');loadDemo()}}
-function logout(){stopLocation();localStorage.removeItem('rt_delivery_session');location.reload()}
-async function loadOrders(){if(!state.token){loginScreen.style.display='grid';app.style.display='none';return}try{const r=await call('bootstrap',{});state.orders=r.orders||[];loginScreen.style.display='none';app.style.display='block';renderOrders();initMap()}catch(e){toast('Demo mode loaded');loadDemo()}}
-function loadDemo(){state.orders=demo;loginScreen.style.display='none';app.style.display='block';renderOrders();initMap()}
-function renderOrders(){orders.innerHTML=state.orders.map(o=>`<article class="card delivery-card"><div style="display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap"><div><h2>${esc(o.orderId)}</h2><p><b>${esc(o.customerName)}</b> · ${esc(o.customerPhone)}</p><p>${esc(o.address||o.deliveryAddress||'')}</p><p><span class="badge">${esc(o.status)}</span> <span class="badge green">${esc(o.paymentStatus)}</span></p><p><b>Total:</b> ${money(o.total)}</p></div><div style="display:grid;gap:10px;align-content:start"><button class="btn" onclick="startDelivery('${esc(o.orderId)}')">Start delivery</button><button class="btn secondary" onclick="openRoute('${encodeURIComponent(o.address||o.deliveryAddress||'')}')">Open route</button><button class="btn success" onclick="completeDelivery('${esc(o.orderId)}')">Delivered</button></div></div><details><summary>Items</summary>${(o.items||[]).map(i=>`<p>${i.quantity}x ${esc(i.name)}</p>`).join('')}</details></article>`).join('')||'<div class="empty">No assigned deliveries.</div>'}
-function initMap(){if(state.map)return;state.map=L.map('map').setView([Number(cfg.defaultLat||30.3322),Number(cfg.defaultLng||-81.6557)],12);L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(state.map)}
-function fromPosition(p){return{lat:p.coords.latitude,lng:p.coords.longitude,accuracy:p.coords.accuracy,timestamp:new Date().toISOString(),userAgent:navigator.userAgent}}
-function getPosition(){return new Promise((res,rej)=>{if(!navigator.geolocation)return rej(new Error('Location unavailable'));navigator.geolocation.getCurrentPosition(p=>res(fromPosition(p)),rej,{enableHighAccuracy:true,timeout:12000,maximumAge:3000})})}
-function showOnMap(loc){if(!state.map)return;const ll=[Number(loc.lat),Number(loc.lng)];if(!state.marker)state.marker=L.marker(ll).addTo(state.map);else state.marker.setLatLng(ll);state.map.setView(ll,16)}
-async function startDelivery(orderId){try{const loc=await getPosition();state.last=loc;showOnMap(loc);await call('startDelivery',{orderId,location:loc});gpsStatus.textContent='Location sharing active for '+orderId;startWatch(orderId);toast('Delivery started')}catch(e){toast('Location rejected. Manual start logged.');try{await call('startDelivery',{orderId,location:{notes:'Location permission rejected',userAgent:navigator.userAgent}})}catch(_){}}}
-function startWatch(orderId){stopLocation(false);state.watchId=navigator.geolocation.watchPosition(p=>{state.last=fromPosition(p);showOnMap(state.last)},err=>gpsStatus.textContent='Location error: '+err.message,{enableHighAccuracy:true,maximumAge:5000,timeout:15000});state.timer=setInterval(()=>sendLocation(orderId),state.seconds*1000);sendLocation(orderId)}
-async function sendLocation(orderId){if(!state.last)return;try{await call('updateDeliveryLocation',{orderId,location:state.last});gpsStatus.textContent='Last update: '+new Date().toLocaleTimeString()}catch(e){gpsStatus.textContent='Update failed: '+e.message}}
-function stopLocation(clear=true){if(state.watchId!=null)navigator.geolocation.clearWatch(state.watchId);if(state.timer)clearInterval(state.timer);state.watchId=null;state.timer=null;if(clear)gpsStatus.textContent='Location sharing is stopped.'}
-async function completeDelivery(orderId){try{const loc=state.last||await getPosition();await call('completeDelivery',{orderId,location:loc});toast('Delivery completed')}catch(e){try{await call('completeDelivery',{orderId,location:{notes:'Final location unavailable',userAgent:navigator.userAgent}})}catch(_){}toast('Delivery completed without final GPS')}stopLocation();loadOrders()}
-function openRoute(addr){const a=decodeURIComponent(addr);const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent);window.open(isIOS?'http://maps.apple.com/?daddr='+encodeURIComponent(a):'https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(a),'_blank')}
-loadOrders();
-</script>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Delivery</title>
+    <link rel="stylesheet" href="assets/restaurant.css">
+  </head>
+  <body>
+    <div id="login" class="login">
+      <div class="card loginCard">
+        <div class="brandmark">
+          <div class="logo">RT</div>
+          <div>
+            <h2 style="margin:0">Delivery Login</h2>
+            <div class="small">driver@test.com / 123456</div>
+          </div>
+        </div>
+        <label class="field">Email<input id="em" value="driver@test.com">
+        </label>
+        <label class="field">Password<input id="pw" type="password" value="123456">
+        </label>
+        <button class="btn brand" onclick="login()">Login</button>
+        <p id="err" class="small">
+        </p>
+      </div>
+    </div>
+    <div id="app" class="shell hidden">
+      <aside class="side">
+        <div class="brandmark">
+          <div class="logo">RT</div>
+          <div>
+            <b>Delivery</b>
+            <div id="who" class="small">
+            </div>
+          </div>
+        </div>
+        <div class="sideNav">
+          <button class="active">Orders</button>
+          <button onclick="logout()">Logout</button>
+        </div>
+      </aside>
+      <main class="main">
+        <h1>Assigned deliveries</h1>
+        <div id="orders" class="grid">
+        </div>
+      </main>
+    </div>
+    <div id="toast" class="toast">
+    </div>
+    <script src="assets/config.js">
+  </script>
+  <script>
+  let sessionToken=localStorage.rt_delivery_session||'', orders=[], watch=null;
+  function $(i) {
+  return document.getElementById(i)
+  }
+  function toast(m) {
+  $('toast').textContent=m;
+  $('toast').classList.add('show');
+  setTimeout(()=>$('toast').classList.remove('show'), 2500)
+  }
+  function p(x= {
+  }) {
+  return Object.assign( {
+  sessionToken, userAgent:navigator.userAgent
+  }, x)
+  }
+  async function api(a, x= {
+  }) {
+  return RTApi.delivery(a, p(x))
+  }
+  async function login() {
+  try {
+  let r=await RTApi.delivery('login',  {
+  email:em.value, password:pw.value, userAgent:navigator.userAgent
+  });
+  sessionToken=r.sessionToken;
+  localStorage.rt_delivery_session=sessionToken;
+  boot()
+  }
+  catch(e) {
+  err.textContent=e.message||String(e)
+  }
+  }
+  function logout() {
+  localStorage.removeItem('rt_delivery_session');
+  location.reload()
+  }
+  async function boot() {
+  try {
+  let r=await api('bootstrap');
+  orders=r.orders||[];
+  who.textContent=r.user.email;
+  login.classList.add('hidden');
+  app.classList.remove('hidden');
+  render()
+  }
+  catch(e) {
+  localStorage.removeItem('rt_delivery_session')
+  }
+  }
+  function render() {
+  ordersDiv=$('orders');
+  ordersDiv.innerHTML=orders.map(o=>`<div class="card" style="padding:18px">
+  <span class="pill">${o.status}</span>
+  <h3>${o.orderId}</h3>
+  <p>
+    <b>${o.customerName}</b> · ${o.customerPhone}</p>
+      <p class="muted">${o.deliveryAddress||o.address}</p>
+      <p>${RTApi.money(o.total)} · ${o.paymentStatus}</p>
+      <button class="btn dark" onclick="maps('${RTApi.esc(o.deliveryAddress||o.address)}')">Open Maps</button> <button class="btn brand" onclick="start('${o.orderId}')">Start</button> <button class="btn green" onclick="done('${o.orderId}')">Delivered</button>
+    </div>`).join('')||'<div class="card" style="padding:18px">No deliveries.</div>'
+    }
+    function maps(a) {
+    window.open('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(a), '_blank')
+    }
+    function pos() {
+    return new Promise((ok, fail)=>navigator.geolocation.getCurrentPosition(x=>ok( {
+    lat:x.coords.latitude, lng:x.coords.longitude, accuracy:x.coords.accuracy, speed:x.coords.speed, heading:x.coords.heading
+    }), fail,  {
+    enableHighAccuracy:true, timeout:15000, maximumAge:5000
+    }))
+    }
+    async function start(id) {
+    try {
+    let l=await pos();
+    await api('startDelivery',  {
+    orderId:id, location:l
+    });
+    if(watch)navigator.geolocation.clearWatch(watch);
+    watch=navigator.geolocation.watchPosition(x=>RTApi.delivery('updateDeliveryLocation', p( {
+    orderId:id, location: {
+    lat:x.coords.latitude, lng:x.coords.longitude, accuracy:x.coords.accuracy, speed:x.coords.speed, heading:x.coords.heading
+    }
+    })).catch(()=> {
+    }), ()=> {
+    },  {
+    enableHighAccuracy:true, maximumAge:5000, timeout:15000
+    });
+    toast('Started');
+    refresh()
+    }
+    catch(e) {
+    toast(e.message||String(e))
+    }
+    }
+    async function done(id) {
+    try {
+    let l=await pos().catch(()=>( {
+    }));
+    await api('completeDelivery',  {
+    orderId:id, location:l
+    });
+    if(watch)navigator.geolocation.clearWatch(watch);
+    toast('Delivered');
+    refresh()
+    }
+    catch(e) {
+    toast(e.message||String(e))
+    }
+    }
+    async function refresh() {
+    let r=await api('getDeliveryOrders');
+    orders=r.orders||[];
+    render()
+    }
+    if(sessionToken)boot();
+  </script>
 </body>
 </html>
