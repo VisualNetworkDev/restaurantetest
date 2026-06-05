@@ -1,171 +1,23 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Delivery</title>
-    <link rel="stylesheet" href="assets/restaurant.css">
-  </head>
-  <body>
-    <div id="login" class="login">
-      <div class="card loginCard">
-        <div class="brandmark">
-          <div class="logo">RT</div>
-          <div>
-            <h2 style="margin:0">Delivery Login</h2>
-            <div class="small">driver@test.com / 123456</div>
-          </div>
-        </div>
-        <label class="field">Email<input id="em" value="driver@test.com">
-        </label>
-        <label class="field">Password<input id="pw" type="password" value="123456">
-        </label>
-        <button class="btn brand" onclick="login()">Login</button>
-        <p id="err" class="small">
-        </p>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Delivery · Restaurant Test</title>
+  <link rel="stylesheet" href="assets/restaurant.css">
+  <script src="assets/config.js"></script>
+</head>
+<body>
+  <section class="login-screen">
+    <div class="login-box">
+      <div class="brand" style="color:var(--ink); margin-bottom:18px;">
+        <span class="brand-mark">🍽️</span>
+        <span><strong>Delivery is inside Admin</strong><small style="color:var(--muted);">No delivery password page is used.</small></span>
       </div>
+      <p class="section-sub">Open Admin, go to the Delivery section, select the active order, use Google Maps or Apple Maps, start GPS tracking, and mark the order Delivered.</p>
+      <a class="btn full" href="admin.html">Open Admin Delivery</a>
+      <a class="btn secondary full" style="margin-top:10px;" href="index.html">Back to restaurant</a>
     </div>
-    <div id="app" class="shell hidden">
-      <aside class="side">
-        <div class="brandmark">
-          <div class="logo">RT</div>
-          <div>
-            <b>Delivery</b>
-            <div id="who" class="small">
-            </div>
-          </div>
-        </div>
-        <div class="sideNav">
-          <button class="active">Orders</button>
-          <button onclick="logout()">Logout</button>
-        </div>
-      </aside>
-      <main class="main">
-        <h1>Assigned deliveries</h1>
-        <div id="orders" class="grid">
-        </div>
-      </main>
-    </div>
-    <div id="toast" class="toast">
-    </div>
-    <script src="assets/config.js">
-  </script>
-  <script>
-  let sessionToken=localStorage.rt_delivery_session||'', orders=[], watch=null;
-  function $(i) {
-  return document.getElementById(i)
-  }
-  function toast(m) {
-  $('toast').textContent=m;
-  $('toast').classList.add('show');
-  setTimeout(()=>$('toast').classList.remove('show'), 2500)
-  }
-  function p(x= {
-  }) {
-  return Object.assign( {
-  sessionToken, userAgent:navigator.userAgent
-  }, x)
-  }
-  async function api(a, x= {
-  }) {
-  return RTApi.delivery(a, p(x))
-  }
-  async function login() {
-  try {
-  let r=await RTApi.delivery('login',  {
-  email:em.value, password:pw.value, userAgent:navigator.userAgent
-  });
-  sessionToken=r.sessionToken;
-  localStorage.rt_delivery_session=sessionToken;
-  boot()
-  }
-  catch(e) {
-  err.textContent=e.message||String(e)
-  }
-  }
-  function logout() {
-  localStorage.removeItem('rt_delivery_session');
-  location.reload()
-  }
-  async function boot() {
-  try {
-  let r=await api('bootstrap');
-  orders=r.orders||[];
-  who.textContent=r.user.email;
-  login.classList.add('hidden');
-  app.classList.remove('hidden');
-  render()
-  }
-  catch(e) {
-  localStorage.removeItem('rt_delivery_session')
-  }
-  }
-  function render() {
-  ordersDiv=$('orders');
-  ordersDiv.innerHTML=orders.map(o=>`<div class="card" style="padding:18px">
-  <span class="pill">${o.status}</span>
-  <h3>${o.orderId}</h3>
-  <p>
-    <b>${o.customerName}</b> · ${o.customerPhone}</p>
-      <p class="muted">${o.deliveryAddress||o.address}</p>
-      <p>${RTApi.money(o.total)} · ${o.paymentStatus}</p>
-      <button class="btn dark" onclick="maps('${RTApi.esc(o.deliveryAddress||o.address)}')">Open Maps</button> <button class="btn brand" onclick="start('${o.orderId}')">Start</button> <button class="btn green" onclick="done('${o.orderId}')">Delivered</button>
-    </div>`).join('')||'<div class="card" style="padding:18px">No deliveries.</div>'
-    }
-    function maps(a) {
-    window.open('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(a), '_blank')
-    }
-    function pos() {
-    return new Promise((ok, fail)=>navigator.geolocation.getCurrentPosition(x=>ok( {
-    lat:x.coords.latitude, lng:x.coords.longitude, accuracy:x.coords.accuracy, speed:x.coords.speed, heading:x.coords.heading
-    }), fail,  {
-    enableHighAccuracy:true, timeout:15000, maximumAge:5000
-    }))
-    }
-    async function start(id) {
-    try {
-    let l=await pos();
-    await api('startDelivery',  {
-    orderId:id, location:l
-    });
-    if(watch)navigator.geolocation.clearWatch(watch);
-    watch=navigator.geolocation.watchPosition(x=>RTApi.delivery('updateDeliveryLocation', p( {
-    orderId:id, location: {
-    lat:x.coords.latitude, lng:x.coords.longitude, accuracy:x.coords.accuracy, speed:x.coords.speed, heading:x.coords.heading
-    }
-    })).catch(()=> {
-    }), ()=> {
-    },  {
-    enableHighAccuracy:true, maximumAge:5000, timeout:15000
-    });
-    toast('Started');
-    refresh()
-    }
-    catch(e) {
-    toast(e.message||String(e))
-    }
-    }
-    async function done(id) {
-    try {
-    let l=await pos().catch(()=>( {
-    }));
-    await api('completeDelivery',  {
-    orderId:id, location:l
-    });
-    if(watch)navigator.geolocation.clearWatch(watch);
-    toast('Delivered');
-    refresh()
-    }
-    catch(e) {
-    toast(e.message||String(e))
-    }
-    }
-    async function refresh() {
-    let r=await api('getDeliveryOrders');
-    orders=r.orders||[];
-    render()
-    }
-    if(sessionToken)boot();
-  </script>
+  </section>
 </body>
 </html>
