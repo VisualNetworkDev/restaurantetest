@@ -37,7 +37,6 @@
         <h2 id="mapTitle" style="margin-top:0;">Delivery map</h2>
         <iframe id="trackingMap" class="tracking-map" loading="lazy"></iframe>
         <p id="mapNote" class="section-sub">The map shows the destination until the driver starts sharing GPS.</p>
-        <div class="toolbar" id="trackingMapLinks"></div>
       </section>
     </div>
   </main>
@@ -61,8 +60,6 @@
 
     function toast(message){ const box = document.getElementById('toast'); box.textContent = message; box.classList.add('show'); setTimeout(() => box.classList.remove('show'), 2500); }
     function mapQuery(data){ if(data.delivery && data.delivery.lat && data.delivery.lng) return data.delivery.lat + ',' + data.delivery.lng; return data.destinationAddress || data.restaurantAddress || cfg.businessName || 'Restaurant'; }
-    function googleUrl(query){ return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(query || ''); }
-    function appleUrl(query){ return 'https://maps.apple.com/?q=' + encodeURIComponent(query || ''); }
 
     function buildTimeline(status, type){
       const steps = type === 'pickup' ? pickupSteps : deliverySteps;
@@ -117,7 +114,6 @@
         document.getElementById('mapTitle').textContent = 'Pickup location';
         document.getElementById('mapNote').textContent = 'Show your pickup QR/token at the counter.';
       }
-      document.getElementById('trackingMapLinks').innerHTML = `<a class="btn secondary" target="_blank" href="${googleUrl(query)}">Google Maps</a><a class="btn secondary" target="_blank" href="${appleUrl(query)}">Apple Maps</a>`;
     }
 
     function renderTrackingMessage(title, message){
@@ -130,7 +126,6 @@
       document.getElementById('orderDetails').innerHTML = `<div class="empty">${RTApi.esc(message)}</div>`;
       document.getElementById('trackingMap').src = 'https://maps.google.com/maps?q=' + encodeURIComponent(query) + '&z=14&output=embed';
       document.getElementById('mapNote').textContent = 'Open the restaurant page or contact the restaurant if this link looks incorrect.';
-      document.getElementById('trackingMapLinks').innerHTML = `<a class="btn secondary" target="_blank" href="${googleUrl(query)}">Google Maps</a><a class="btn secondary" target="_blank" href="${appleUrl(query)}">Apple Maps</a>`;
     }
 
     async function loadTracking(){
