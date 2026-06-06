@@ -33,6 +33,8 @@
           <button data-panel="orders" onclick="showPanel('orders', this)">Orders</button>
           <button data-panel="delivery" onclick="showPanel('delivery', this)">Delivery</button>
           <button data-panel="menu" onclick="showPanel('menu', this)">Menu</button>
+          <button data-panel="promotions" onclick="showPanel('promotions', this)">Promotions</button>
+          <button data-panel="testimonials" onclick="showPanel('testimonials', this)">Testimonials</button>
           <button data-panel="payments" onclick="showPanel('payments', this)">Payments</button>
           <button data-panel="settings" onclick="showPanel('settings', this)">Settings</button>
           <button data-panel="users" onclick="showPanel('users', this)">Users</button>
@@ -57,6 +59,8 @@
           <button class="menu-tile" onclick="showPanel('orders')"><b>Orders</b><span class="section-sub">Manage pickup, delivery, totals, and status.</span></button>
           <button class="menu-tile" onclick="showPanel('delivery')"><b>Delivery</b><span class="section-sub">Open route, start GPS, update tracking, deliver.</span></button>
           <button class="menu-tile" onclick="showPanel('menu')"><b>Menu</b><span class="section-sub">Edit dishes, prices, availability, and photos.</span></button>
+          <button class="menu-tile" onclick="showPanel('promotions')"><b>Promotions</b><span class="section-sub">Create coupons, dates, and active discounts.</span></button>
+          <button class="menu-tile" onclick="showPanel('testimonials')"><b>Testimonials</b><span class="section-sub">Control visible customer reviews and ratings.</span></button>
           <button class="menu-tile" onclick="showPanel('payments')"><b>Payments</b><span class="section-sub">Configure secure payment link and messages.</span></button>
           <button class="menu-tile" onclick="showPanel('settings')"><b>Settings</b><span class="section-sub">Restaurant information and fixed delivery fee.</span></button>
           <button class="menu-tile" onclick="showPanel('users')"><b>Users</b><span class="section-sub">Create staff accounts and roles.</span></button>
@@ -78,7 +82,7 @@
         <div class="card" style="padding:24px; margin-bottom:20px;">
           <span class="badge dark">Delivery inside Admin</span>
           <h2 style="margin-bottom:6px;">Active delivery orders</h2>
-          <p class="section-sub">No separate delivery password page. When an order is ready, staff/admin handles route, GPS tracking, maps, customer phone, order items, and delivery completion from here.</p>
+          <p class="section-sub">Delivery is handled from this Admin section. When an order is ready, staff/admin handles route, GPS tracking, maps, customer phone, order items, and delivery completion from here.</p>
         </div>
         <div id="deliveryList" class="grid"></div>
       </section>
@@ -94,10 +98,41 @@
             <div class="split"><label class="field"><span>Price</span><input id="menuPrice" type="number" step="0.01"></label><label class="field"><span>Available</span><select id="menuAvailable"><option>Yes</option><option>No</option></select></label></div>
             <label class="field"><span>Image URL</span><input id="menuImage"></label>
             <label class="field"><span>Upload image from gallery</span><input id="menuImageFile" type="file" accept="image/*" onchange="handleMenuImageFile(event)"></label>
+            <div class="split"><label class="field"><span>Has options/extras</span><select id="menuHasOptions"><option>No</option><option>Yes</option></select></label><label class="field"><span>Sort order</span><input id="menuOrder" type="number" step="1"></label></div>
+            <label class="field"><span>Options/extras structure</span><textarea id="menuOptions" placeholder="Example: Extra cheese +1.00, Avocado +2.00"></textarea></label>
             <div id="imageUploadStatus" class="section-sub"></div>
             <div class="toolbar"><button class="btn" type="button" onclick="saveMenuItem()">Save item</button><button class="btn secondary" type="button" onclick="clearMenuForm()">Clear</button></div>
           </div>
           <div id="menuList" class="grid"></div>
+        </div>
+      </section>
+
+      <section id="panel-promotions" class="panel">
+        <div class="grid grid-2">
+          <div class="card" style="padding:24px;">
+            <h2 style="margin-top:0;">Promotion</h2>
+            <label class="field"><span>Code</span><input id="promoCode" placeholder="WELCOME10"></label>
+            <label class="field"><span>Title</span><input id="promoTitle"></label>
+            <label class="field"><span>Description</span><textarea id="promoDescription"></textarea></label>
+            <div class="split"><label class="field"><span>Type</span><select id="promoType"><option>percent</option><option>fixed</option></select></label><label class="field"><span>Value</span><input id="promoValue" type="number" step="0.01"></label></div>
+            <div class="split"><label class="field"><span>Active</span><select id="promoActive"><option>Yes</option><option>No</option></select></label><label class="field"><span>Minimum subtotal</span><input id="promoMinSubtotal" type="number" step="0.01"></label></div>
+            <div class="split"><label class="field"><span>Start date</span><input id="promoStartDate" type="date"></label><label class="field"><span>End date</span><input id="promoEndDate" type="date"></label></div>
+            <div class="toolbar"><button class="btn" type="button" onclick="savePromotion()">Save promotion</button><button class="btn secondary" type="button" onclick="clearPromotionForm()">Clear</button></div>
+          </div>
+          <div id="promotionsList" class="grid"></div>
+        </div>
+      </section>
+
+      <section id="panel-testimonials" class="panel">
+        <div class="grid grid-2">
+          <div class="card" style="padding:24px;">
+            <h2 style="margin-top:0;">Testimonial</h2>
+            <label class="field"><span>Name</span><input id="testName"></label>
+            <label class="field"><span>Text</span><textarea id="testText"></textarea></label>
+            <div class="split"><label class="field"><span>Rating</span><input id="testRating" type="number" min="1" max="5" step="1" value="5"></label><label class="field"><span>Visible</span><select id="testVisible"><option>Yes</option><option>No</option></select></label></div>
+            <div class="toolbar"><button class="btn" type="button" onclick="saveTestimonial()">Save testimonial</button><button class="btn secondary" type="button" onclick="clearTestimonialForm()">Clear</button></div>
+          </div>
+          <div id="testimonialsList" class="grid"></div>
         </div>
       </section>
 
@@ -117,12 +152,16 @@
         <div class="card" style="padding:24px;">
           <h2 style="margin-top:0;">Restaurant settings</h2>
           <div class="split"><label class="field"><span>Restaurant name</span><input id="cfgName"></label><label class="field"><span>Phone</span><input id="cfgPhone"></label></div>
+          <label class="field"><span>Email</span><input id="cfgEmail"></label>
           <label class="field"><span>Address</span><input id="cfgAddress"></label>
           <div class="split"><label class="field"><span>Delivery enabled</span><select id="cfgDeliveryEnabled"><option>Yes</option><option>No</option></select></label><label class="field"><span>Pickup enabled</span><select id="cfgPickupEnabled"><option>Yes</option><option>No</option></select></label></div>
           <div class="split"><label class="field"><span>Fixed delivery fee</span><input id="cfgFixedDeliveryFee" type="number" step="0.01"></label><label class="field"><span>Tax rate</span><input id="cfgTaxRate" type="number" step="0.001"></label></div>
           <label class="field"><span>Instagram URL</span><input id="cfgInstagram"></label>
           <label class="field"><span>Hero image URL</span><input id="cfgHeroImage"></label>
           <label class="field"><span>About text</span><textarea id="cfgAboutText"></textarea></label>
+          <div class="split"><label class="field"><span>License name</span><input id="cfgLicenseName"></label><label class="field"><span>Licensed / powered by</span><input id="cfgLicenseBy"></label></div>
+          <div class="split"><label class="field"><span>Public base URL</span><input id="cfgPublicBaseUrl"></label><label class="field"><span>Tracking page</span><input id="cfgTrackingPage"></label></div>
+          <label class="field"><span>Location update seconds</span><input id="cfgLocationUpdateSeconds" type="number" min="10" step="1"></label>
           <button class="btn" type="button" onclick="saveSettings()">Save settings</button>
         </div>
       </section>
@@ -132,6 +171,7 @@
           <h2 style="margin-top:0;">Create / update user</h2>
           <div class="split"><label class="field"><span>Name</span><input id="userName"></label><label class="field"><span>User / email</span><input id="userEmail"></label></div>
           <div class="split"><label class="field"><span>Password</span><input id="userPassword"></label><label class="field"><span>Role</span><select id="userRole"><option>staff</option><option>admin</option><option>delivery</option><option>kitchen</option></select></label></div>
+          <div class="split"><label class="field"><span>Active</span><select id="userStatus"><option>Yes</option><option>No</option></select></label><label class="field"><span>Available</span><select id="userAvailable"><option>Yes</option><option>No</option></select></label></div>
           <button class="btn" type="button" onclick="saveUser()">Save user</button>
         </div>
         <div id="usersList" class="grid grid-3"></div>
@@ -210,6 +250,8 @@
         orders: ['Orders', 'Manage pickup, delivery, payments, and order status.'],
         delivery: ['Delivery', 'Open maps, start GPS, update tracking, and mark deliveries complete.'],
         menu: ['Menu', 'Edit menu items and upload optimized photos.'],
+        promotions: ['Promotions', 'Create and manage active discounts.'],
+        testimonials: ['Testimonials', 'Control visible reviews and ratings.'],
         payments: ['Payments', 'Configure the visual payment link.'],
         settings: ['Settings', 'Restaurant information and fixed delivery fee.'],
         users: ['Users', 'Create staff users and reset access.'],
@@ -221,11 +263,11 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    function renderAll(){ renderDashboard(); renderOrders(); renderDelivery(); renderMenu(); fillPayments(); fillSettings(); renderUsers(); renderLogs(); }
+    function renderAll(){ renderDashboard(); renderOrders(); renderDelivery(); renderMenu(); renderPromotions(); renderTestimonials(); fillPayments(); fillSettings(); renderUsers(); renderLogs(); }
 
     function renderDashboard(){
       const dashboard = adminData.dashboard || {};
-      const stats = [['Orders', dashboard.totalOrders || 0], ['Revenue', RTApi.money(dashboard.totalRevenue || 0)], ['Pickup', dashboard.pickupCount || 0], ['Delivery', dashboard.deliveryCount || 0]];
+      const stats = [['Orders', dashboard.totalOrders || 0], ['Revenue', RTApi.money(dashboard.totalRevenue || 0)], ['Pickup', dashboard.pickupCount || 0], ['Delivery', dashboard.deliveryCount || 0], ['Pending', dashboard.pendingCount || 0], ['Paid', dashboard.paidCount || 0], ['Unpaid', dashboard.unpaidCount || 0]];
       $('statsGrid').innerHTML = stats.map(stat => '<div class="card stat-card"><span>' + RTApi.esc(stat[0]) + '</span><b>' + RTApi.esc(stat[1]) + '</b></div>').join('');
     }
 
@@ -234,17 +276,52 @@
       return items.map(item => '<div><span>' + RTApi.esc(item.quantity || item.qty || 1) + 'x ' + RTApi.esc(item.name || item.nombre || item.Nombre || '') + '</span><strong>' + RTApi.money(item.lineTotal || (Number(item.price || 0) * Number(item.quantity || item.qty || 1))) + '</strong></div>').join('');
     }
 
+    function safeDomId(value){ return String(value || '').replace(/[^a-zA-Z0-9_-]/g, '-'); }
+    function deliveryStaff(){ return (adminData.users || []).filter(user => ['admin', 'staff', 'delivery'].indexOf(String(user.role || '').toLowerCase()) !== -1 && String(user.status || 'Yes') !== 'No'); }
+    function staffOptions(selectedEmail){
+      const users = deliveryStaff();
+      return '<option value="">Select staff/delivery</option>' + users.map(user => `<option value="${RTApi.esc(user.email)}" data-name="${RTApi.esc(user.name)}" ${String(user.email).toLowerCase() === String(selectedEmail || '').toLowerCase() ? 'selected' : ''}>${RTApi.esc(user.name || user.email)} (${RTApi.esc(user.role || 'staff')})</option>`).join('');
+    }
+    function orderStatusButtons(order){
+      const statuses = order.type === 'pickup'
+        ? ['Confirmed', 'Preparing', 'Ready for pickup', 'Picked up', 'Cancelled']
+        : ['Confirmed', 'Preparing', 'Ready for delivery', 'On the way', 'Delivered', 'Cancelled'];
+      return statuses.map(status => `<button class="btn secondary mini-btn" type="button" onclick="updateOrderStatus('${RTApi.esc(order.orderId)}', '${RTApi.esc(status)}')">${RTApi.esc(status)}</button>`).join('');
+    }
+
     function renderOrders(){
       const orders = adminData.orders || [];
       $('ordersTable').innerHTML = orders.map(order => {
-        return `<tr><td><strong>${RTApi.esc(order.orderId)}</strong><br><span class="section-sub">${RTApi.esc(order.timestamp || '')}</span></td><td>${RTApi.esc(order.customerName)}<br><span class="section-sub">${RTApi.esc(order.customerPhone)}</span>${order.deliveryAddress ? '<br><strong>Address:</strong> ' + RTApi.esc(order.deliveryAddress) : ''}</td><td><div class="order-items">${itemListHtml(order.items)}</div></td><td>${RTApi.money(order.total)}<br><span class="section-sub">${RTApi.esc(order.paymentStatus || '')}</span></td><td><span class="badge green">${RTApi.esc(order.status)}</span></td><td><select onchange="updateOrderStatus('${RTApi.esc(order.orderId)}', this.value)"><option value="">Change status</option><option>Pending</option><option>Confirmed</option><option>Preparing</option><option>Ready for pickup</option><option>Ready for delivery</option><option>On the way</option><option>Delivered</option><option>Picked up</option><option>Cancelled</option></select>${order.type === 'delivery' ? '<button class="btn secondary" type="button" onclick="prepareDelivery(\'' + RTApi.esc(order.orderId) + '\')">Send to Delivery</button>' : ''}</td></tr>`;
+        const assignId = 'assign-' + safeDomId(order.orderId);
+        const assignBlock = order.type === 'delivery' ? `<div class="assign-row"><select id="${assignId}">${staffOptions(order.assignedDeliveryEmail)}</select><button class="btn secondary mini-btn" type="button" onclick="assignDeliveryFromOrder('${RTApi.esc(order.orderId)}', '${assignId}')">Assign</button></div>` : '';
+        const paymentAction = order.paymentStatus !== 'Paid' ? `<button class="btn success mini-btn" type="button" onclick="markPaid('${RTApi.esc(order.orderId)}')">Mark paid</button>` : '<span class="badge green">Paid</span>';
+        const deliveryButton = order.type === 'delivery' ? `<button class="btn secondary mini-btn" type="button" onclick="prepareDelivery('${RTApi.esc(order.orderId)}')">Send to Delivery</button>` : '';
+        return `<tr><td><strong>${RTApi.esc(order.orderId)}</strong><br><span class="section-sub">${RTApi.esc(order.timestamp || '')}</span>${order.pickupToken ? '<br><span class="badge dark">Pickup ' + RTApi.esc(order.pickupToken) + '</span>' : ''}${order.trackingURL ? '<br><a class="section-sub" target="_blank" href="' + RTApi.esc(order.trackingURL) + '">Tracking link</a>' : ''}</td><td>${RTApi.esc(order.customerName)}<br><span class="section-sub">${RTApi.esc(order.customerPhone)}</span><br><span class="section-sub">${RTApi.esc(order.customerEmail || '')}</span>${order.deliveryAddress ? '<br><strong>Address:</strong> ' + RTApi.esc(order.deliveryAddress) : ''}${order.deliveryInstructions ? '<br><strong>Instructions:</strong> ' + RTApi.esc(order.deliveryInstructions) : ''}</td><td><div class="order-items">${itemListHtml(order.items)}</div><div class="section-sub">Subtotal ${RTApi.money(order.subtotal)} | Discount ${RTApi.money(order.discount)} | Tax ${RTApi.money(order.tax)} | Delivery ${RTApi.money(order.deliveryFee)} | Tip ${RTApi.money(order.tip)}</div></td><td>${RTApi.money(order.total)}<br><span class="section-sub">${RTApi.esc(order.paymentStatus || '')}</span><br>${paymentAction}</td><td><span class="badge green">${RTApi.esc(order.status)}</span><br><span class="section-sub">${RTApi.esc(order.type || '')}</span>${order.assignedDeliveryEmail ? '<br><span class="section-sub">Assigned: ' + RTApi.esc(order.assignedDeliveryName || order.assignedDeliveryEmail) + '</span>' : ''}</td><td><div class="quick-actions">${orderStatusButtons(order)}</div>${assignBlock}<select onchange="updateOrderStatus('${RTApi.esc(order.orderId)}', this.value)"><option value="">More status</option><option>Pending</option><option>Confirmed</option><option>Preparing</option><option>Ready for pickup</option><option>Ready for delivery</option><option>On the way</option><option>Delivered</option><option>Picked up</option><option>Cancelled</option></select>${deliveryButton}</td></tr>`;
       }).join('') || '<tr><td colspan="6">No orders yet.</td></tr>';
     }
 
     async function updateOrderStatus(orderId, status){ if(!status) return; await adminCall('updateOrderStatus', { orderId, status }); await refreshAll(); }
     async function prepareDelivery(orderId){ await adminCall('updateOrderStatus', { orderId, status: 'Ready for delivery' }); await refreshAll(); showPanel('delivery'); }
+    async function markPaid(orderId){ await adminCall('markPaid', { orderId }); toast('Payment marked paid'); await refreshAll(); }
+    async function assignDeliveryFromOrder(orderId, selectId){
+      const select = $(selectId);
+      if(!select || !select.value){ toast('Select staff/delivery first'); return; }
+      const option = select.options[select.selectedIndex];
+      await adminCall('assignDelivery', { orderId, deliveryEmail: select.value, deliveryName: option.getAttribute('data-name') || option.textContent });
+      toast('Delivery assigned');
+      await refreshAll();
+    }
 
-    function deliveryOrders(){ return (adminData.orders || []).filter(order => order.type === 'delivery' && ['Confirmed', 'Preparing', 'Ready for delivery', 'On the way'].indexOf(order.status) !== -1); }
+    function deliveryOrders(){
+      return (adminData.orders || []).filter(order => {
+        const active = order.type === 'delivery' && ['Confirmed', 'Preparing', 'Ready for delivery', 'On the way'].indexOf(order.status) !== -1;
+        if(!active) return false;
+        if(currentUser && String(currentUser.role || '').toLowerCase() === 'delivery'){
+          return String(order.assignedDeliveryEmail || '').toLowerCase() === String(currentUser.email || '').toLowerCase();
+        }
+        return true;
+      });
+    }
     function googleMapsUrl(address){ return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(address || ''); }
     function appleMapsUrl(address){ return 'https://maps.apple.com/?q=' + encodeURIComponent(address || ''); }
     function embeddedMapUrl(address){ return 'https://maps.google.com/maps?q=' + encodeURIComponent(address || '') + '&output=embed'; }
@@ -283,9 +360,9 @@
       $('menuList').innerHTML = menu.map(item => `<div class="card" style="padding:18px;"><strong>${RTApi.esc(item.name)}</strong><p class="section-sub">${RTApi.esc(item.category)} · ${RTApi.money(item.price)} · ${RTApi.esc(item.available)}</p>${item.image ? '<img src="' + RTApi.esc(item.image) + '" style="width:100%; max-height:170px; object-fit:cover; border-radius:18px; margin:10px 0;">' : ''}<div class="toolbar"><button class="btn secondary" type="button" onclick='editMenuItem(${JSON.stringify(item)})'>Edit</button><button class="btn dark" type="button" onclick="toggleMenuItem('${RTApi.esc(item.id)}')">Toggle</button></div></div>`).join('') || '<div class="empty">No menu items.</div>';
     }
 
-    function editMenuItem(item){ $('menuId').value = item.id || ''; $('menuCategory').value = item.category || ''; $('menuName').value = item.name || ''; $('menuDescription').value = item.description || ''; $('menuPrice').value = item.price || ''; $('menuImage').value = item.image || ''; $('menuAvailable').value = item.available || 'Yes'; showPanel('menu'); }
-    function clearMenuForm(){ ['menuId','menuCategory','menuName','menuDescription','menuPrice','menuImage'].forEach(id => $(id).value = ''); $('menuAvailable').value = 'Yes'; $('imageUploadStatus').textContent = ''; }
-    async function saveMenuItem(){ await adminCall('saveMenuItem', { item: { id: $('menuId').value, category: $('menuCategory').value, name: $('menuName').value, description: $('menuDescription').value, price: $('menuPrice').value, image: $('menuImage').value, available: $('menuAvailable').value } }); toast('Menu item saved'); clearMenuForm(); await refreshAll(); }
+    function editMenuItem(item){ $('menuId').value = item.id || ''; $('menuCategory').value = item.category || ''; $('menuName').value = item.name || ''; $('menuDescription').value = item.description || ''; $('menuPrice').value = item.price || ''; $('menuImage').value = item.image || ''; $('menuAvailable').value = item.available || 'Yes'; $('menuHasOptions').value = item.hasOptions || 'No'; $('menuOrder').value = item.order || ''; $('menuOptions').value = item.options || ''; showPanel('menu'); }
+    function clearMenuForm(){ ['menuId','menuCategory','menuName','menuDescription','menuPrice','menuImage','menuOrder','menuOptions'].forEach(id => $(id).value = ''); $('menuAvailable').value = 'Yes'; $('menuHasOptions').value = 'No'; $('imageUploadStatus').textContent = ''; }
+    async function saveMenuItem(){ await adminCall('saveMenuItem', { item: { id: $('menuId').value, category: $('menuCategory').value, name: $('menuName').value, description: $('menuDescription').value, price: $('menuPrice').value, image: $('menuImage').value, available: $('menuAvailable').value, hasOptions: $('menuHasOptions').value, order: $('menuOrder').value, options: $('menuOptions').value } }); toast('Menu item saved'); clearMenuForm(); await refreshAll(); }
     async function toggleMenuItem(id){ await adminCall('toggleMenuItem', { id }); toast('Item updated'); await refreshAll(); }
 
     async function handleMenuImageFile(event){
@@ -330,12 +407,82 @@
       });
     }
 
+    function dateInputValue(value){
+      if(!value) return '';
+      const date = new Date(value);
+      if(!Number.isNaN(date.getTime())) return date.toISOString().slice(0, 10);
+      return String(value).slice(0, 10);
+    }
+
+    function renderPromotions(){
+      const promotions = adminData.promotions || [];
+      $('promotionsList').innerHTML = promotions.map(promo => {
+        const code = promo.Code || promo.code || '';
+        const active = promo.Active || promo.active || 'No';
+        return `<div class="card" style="padding:18px;"><span class="promo-code">${RTApi.esc(code)}</span><h3>${RTApi.esc(promo.Title || promo.title || '')}</h3><p class="section-sub">${RTApi.esc(promo.Description || promo.description || '')}</p><p class="section-sub">${RTApi.esc(promo.Type || promo.type || '')} | ${RTApi.esc(promo.Value || promo.value || 0)} | min ${RTApi.money(promo.MinSubtotal || promo.minSubtotal || 0)} | ${RTApi.esc(active)}</p><div class="toolbar"><button class="btn secondary" type="button" onclick="editPromotionByCode('${RTApi.esc(code)}')">Edit</button><button class="btn dark" type="button" onclick="togglePromotion('${RTApi.esc(code)}')">${active === 'Yes' ? 'Disable' : 'Enable'}</button></div></div>`;
+      }).join('') || '<div class="empty">No promotions configured.</div>';
+    }
+
+    function editPromotionByCode(code){
+      const promo = (adminData.promotions || []).find(item => String(item.Code || item.code || '') === code);
+      if(!promo) return;
+      $('promoCode').value = promo.Code || promo.code || '';
+      $('promoTitle').value = promo.Title || promo.title || '';
+      $('promoDescription').value = promo.Description || promo.description || '';
+      $('promoType').value = promo.Type || promo.type || 'percent';
+      $('promoValue').value = promo.Value || promo.value || 0;
+      $('promoActive').value = promo.Active || promo.active || 'Yes';
+      $('promoMinSubtotal').value = promo.MinSubtotal || promo.minSubtotal || 0;
+      $('promoStartDate').value = dateInputValue(promo.StartDate || promo.startDate || '');
+      $('promoEndDate').value = dateInputValue(promo.EndDate || promo.endDate || '');
+      showPanel('promotions');
+    }
+
+    function clearPromotionForm(){ ['promoCode','promoTitle','promoDescription','promoValue','promoMinSubtotal','promoStartDate','promoEndDate'].forEach(id => $(id).value = ''); $('promoType').value = 'percent'; $('promoActive').value = 'Yes'; }
+    async function savePromotion(){ await adminCall('savePromotion', { promotion: { code: $('promoCode').value, title: $('promoTitle').value, description: $('promoDescription').value, type: $('promoType').value, value: $('promoValue').value, active: $('promoActive').value, minSubtotal: $('promoMinSubtotal').value, startDate: $('promoStartDate').value, endDate: $('promoEndDate').value } }); toast('Promotion saved'); clearPromotionForm(); await refreshAll(); }
+    async function togglePromotion(code){
+      const promo = (adminData.promotions || []).find(item => String(item.Code || item.code || '') === code);
+      if(!promo) return;
+      await adminCall('savePromotion', { promotion: { code, title: promo.Title || promo.title || '', description: promo.Description || promo.description || '', type: promo.Type || promo.type || 'percent', value: promo.Value || promo.value || 0, active: (promo.Active || promo.active || 'No') === 'Yes' ? 'No' : 'Yes', minSubtotal: promo.MinSubtotal || promo.minSubtotal || 0, startDate: dateInputValue(promo.StartDate || promo.startDate || ''), endDate: dateInputValue(promo.EndDate || promo.endDate || '') } });
+      toast('Promotion updated');
+      await refreshAll();
+    }
+
+    function renderTestimonials(){
+      const testimonials = adminData.testimonials || [];
+      $('testimonialsList').innerHTML = testimonials.map((item, index) => `<div class="card" style="padding:18px;"><strong>${RTApi.esc(item.Name || item.name || '')}</strong><p class="section-sub">${RTApi.esc(item.Text || item.text || '')}</p><p class="section-sub">Rating ${RTApi.esc(item.Rating || item.rating || 5)} | Visible ${RTApi.esc(item.Visible || item.visible || 'Yes')}</p><div class="toolbar"><button class="btn secondary" type="button" onclick="editTestimonialAt(${index})">Edit</button><button class="btn dark" type="button" onclick="toggleTestimonial(${index})">${(item.Visible || item.visible || 'Yes') === 'Yes' ? 'Hide' : 'Show'}</button></div></div>`).join('') || '<div class="empty">No testimonials configured.</div>';
+    }
+
+    function editTestimonialAt(index){
+      const item = (adminData.testimonials || [])[index];
+      if(!item) return;
+      $('testName').value = item.Name || item.name || '';
+      $('testText').value = item.Text || item.text || '';
+      $('testRating').value = item.Rating || item.rating || 5;
+      $('testVisible').value = item.Visible || item.visible || 'Yes';
+      showPanel('testimonials');
+    }
+
+    function clearTestimonialForm(){ $('testName').value = ''; $('testText').value = ''; $('testRating').value = 5; $('testVisible').value = 'Yes'; }
+    async function saveTestimonial(){ await adminCall('saveTestimonial', { testimonial: { name: $('testName').value, text: $('testText').value, rating: $('testRating').value, visible: $('testVisible').value } }); toast('Testimonial saved'); clearTestimonialForm(); await refreshAll(); }
+    async function toggleTestimonial(index){
+      const item = (adminData.testimonials || [])[index];
+      if(!item) return;
+      await adminCall('saveTestimonial', { testimonial: { name: item.Name || item.name || '', text: item.Text || item.text || '', rating: item.Rating || item.rating || 5, visible: (item.Visible || item.visible || 'Yes') === 'Yes' ? 'No' : 'Yes' } });
+      toast('Testimonial updated');
+      await refreshAll();
+    }
+
     function fillPayments(){ const p = adminData.payments || {}; $('payEnabled').value = p.enabled || 'No'; $('payProvider').value = p.provider || ''; $('payLink').value = p.link || ''; $('payLoginUrl').value = p.loginUrl || ''; $('payButtonLabel').value = p.buttonLabel || 'Pay Securely'; $('payRedirectMessage').value = p.redirectMessage || 'You are being redirected to the restaurant secure payment page.'; }
     async function savePayments(){ await adminCall('savePaymentsConfig', { enabled: $('payEnabled').value, provider: $('payProvider').value, link: $('payLink').value, loginUrl: $('payLoginUrl').value, buttonLabel: $('payButtonLabel').value, redirectMessage: $('payRedirectMessage').value }); toast('Payments saved'); await refreshAll(); }
-    function fillSettings(){ const c = adminData.config || {}; $('cfgName').value = c.name || ''; $('cfgPhone').value = c.phone || ''; $('cfgAddress').value = c.address || ''; $('cfgDeliveryEnabled').value = c.deliveryEnabled || 'Yes'; $('cfgPickupEnabled').value = c.pickupEnabled || 'Yes'; $('cfgFixedDeliveryFee').value = c.fixedDeliveryFee || c.deliveryFee || 4.99; $('cfgTaxRate').value = c.taxRate || 0.07; $('cfgInstagram').value = c.instagramUrl || ''; $('cfgHeroImage').value = c.heroImage || ''; $('cfgAboutText').value = c.aboutText || ''; }
-    async function saveSettings(){ await adminCall('saveRestaurantConfig', { config: { name: $('cfgName').value, phone: $('cfgPhone').value, address: $('cfgAddress').value, deliveryEnabled: $('cfgDeliveryEnabled').value, pickupEnabled: $('cfgPickupEnabled').value, fixedDeliveryFee: $('cfgFixedDeliveryFee').value, taxRate: $('cfgTaxRate').value, instagramUrl: $('cfgInstagram').value, heroImage: $('cfgHeroImage').value, aboutText: $('cfgAboutText').value, deliveryFeeMode: 'fixed' } }); toast('Settings saved'); await refreshAll(); }
+    function fillSettings(){ const c = adminData.config || {}; $('cfgName').value = c.name || ''; $('cfgPhone').value = c.phone || ''; $('cfgEmail').value = c.email || c.adminEmail || ''; $('cfgAddress').value = c.address || ''; $('cfgDeliveryEnabled').value = c.deliveryEnabled || 'Yes'; $('cfgPickupEnabled').value = c.pickupEnabled || 'Yes'; $('cfgFixedDeliveryFee').value = c.fixedDeliveryFee || c.deliveryFee || 4.99; $('cfgTaxRate').value = c.taxRate || 0.07; $('cfgInstagram').value = c.instagramUrl || ''; $('cfgHeroImage').value = c.heroImage || ''; $('cfgAboutText').value = c.aboutText || ''; $('cfgLicenseName').value = c.licenseName || ''; $('cfgLicenseBy').value = c.licenseBy || ''; $('cfgPublicBaseUrl').value = c.publicBaseUrl || ''; $('cfgTrackingPage').value = c.trackingPage || 'tracking.html'; $('cfgLocationUpdateSeconds').value = c.locationUpdateSeconds || 30; }
+    async function saveSettings(){ await adminCall('saveRestaurantConfig', { config: { name: $('cfgName').value, phone: $('cfgPhone').value, email: $('cfgEmail').value, adminEmail: $('cfgEmail').value, address: $('cfgAddress').value, deliveryEnabled: $('cfgDeliveryEnabled').value, pickupEnabled: $('cfgPickupEnabled').value, fixedDeliveryFee: $('cfgFixedDeliveryFee').value, deliveryFee: $('cfgFixedDeliveryFee').value, taxRate: $('cfgTaxRate').value, instagramUrl: $('cfgInstagram').value, heroImage: $('cfgHeroImage').value, aboutText: $('cfgAboutText').value, licenseName: $('cfgLicenseName').value, licenseBy: $('cfgLicenseBy').value, publicBaseUrl: $('cfgPublicBaseUrl').value, trackingPage: $('cfgTrackingPage').value, locationUpdateSeconds: $('cfgLocationUpdateSeconds').value, deliveryFeeMode: 'fixed' } }); toast('Settings saved'); await refreshAll(); }
     function renderUsers(){ $('usersList').innerHTML = (adminData.users || []).map(user => `<div class="card" style="padding:18px;"><strong>${RTApi.esc(user.name)}</strong><p class="section-sub">${RTApi.esc(user.email)} · ${RTApi.esc(user.role)} · failed attempts ${user.failedAttempts || 0}</p></div>`).join('') || '<div class="empty">No users.</div>'; }
     async function saveUser(){ await adminCall('saveUser', { user: { name: $('userName').value, email: $('userEmail').value, password: $('userPassword').value, role: $('userRole').value } }); toast('User saved'); await refreshAll(); }
+    renderUsers = function(){ $('usersList').innerHTML = (adminData.users || []).map((user, index) => `<div class="card" style="padding:18px;"><strong>${RTApi.esc(user.name)}</strong><p class="section-sub">${RTApi.esc(user.email)} | ${RTApi.esc(user.role)} | active ${RTApi.esc(user.status || 'Yes')} | available ${RTApi.esc(user.available || 'Yes')} | failed attempts ${user.failedAttempts || 0}</p><div class="toolbar"><button class="btn secondary" type="button" onclick="editUserAt(${index})">Load / reset password</button><button class="btn dark" type="button" onclick="resetUserLock('${RTApi.esc(user.email)}')">Unlock</button></div></div>`).join('') || '<div class="empty">No users.</div>'; };
+    function editUserAt(index){ const user = (adminData.users || [])[index]; if(!user) return; $('userName').value = user.name || ''; $('userEmail').value = user.email || ''; $('userPassword').value = ''; $('userRole').value = user.role || 'staff'; $('userStatus').value = user.status || 'Yes'; $('userAvailable').value = user.available || 'Yes'; showPanel('users'); }
+    saveUser = async function(){ const payload = { name: $('userName').value, email: $('userEmail').value, password: $('userPassword').value, role: $('userRole').value, status: $('userStatus').value, available: $('userAvailable').value }; await adminCall('saveUser', { user: payload }); toast('User saved'); await refreshAll(); };
+    async function resetUserLock(email){ await adminCall('resetUserLock', { email }); toast('User unlocked'); await refreshAll(); }
     async function verifyPickup(){ try { const result = await adminCall('verifyPickupToken', { token: $('pickupToken').value }); verifiedPickupOrder = result.order; $('pickupResult').innerHTML = `<div class="card" style="padding:18px;"><strong>${RTApi.esc(result.order.orderId)}</strong><p>${RTApi.esc(result.order.customerName)} · ${RTApi.money(result.order.total)}</p><p>Status: ${RTApi.esc(result.order.status)}</p></div>`; } catch(error) { $('pickupResult').textContent = error.message || String(error); } }
     async function completePickup(){ if(!verifiedPickupOrder){ toast('Verify token first'); return; } await adminCall('completePickupOrder', { orderId: verifiedPickupOrder.orderId, token: $('pickupToken').value }); verifiedPickupOrder = null; toast('Pickup completed'); await refreshAll(); }
     function renderLogs(){ $('logsTable').innerHTML = (adminData.logs || []).map(log => `<tr><td>${RTApi.esc(log.timestamp || '')}</td><td>${RTApi.esc(log.userEmail || '')}</td><td>${RTApi.esc(log.action || '')}</td><td>${RTApi.esc(log.orderId || '')}</td><td>${RTApi.esc(log.result || '')}</td></tr>`).join(''); }
