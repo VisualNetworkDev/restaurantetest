@@ -8,6 +8,7 @@ window.RESTAURANT_SYSTEM = {
   defaultLat: 30.3322,
   defaultLng: -81.6557,
   locationUpdateSeconds: 30,
+  apiTimeoutMs: 30000,
 
   clientApiUrl: 'https://script.google.com/macros/s/AKfycbz3trsuRc4F-AolagUeX3O4Ildr83YoJnPOxhdLYNvJgN1mTYOxVv7DGCifm-SGJ34NaA/exec',
   adminApiUrl: 'https://script.google.com/macros/s/AKfycbwnIrpJ618l_esUejx5JpLTO50mt8yjGKLksU0q2xNrIEfP8YmyJExRTBf5od0_ZeC7/exec',
@@ -30,7 +31,7 @@ window.RESTAURANT_SYSTEM = {
 
   function jsonp(baseUrl, action, payload = {}){
     return new Promise((resolve, reject) => {
-      if(!baseUrl || baseUrl.includes('PASTE_')){
+      if(!baseUrl || baseUrl.includes('PASTE' + '_')){
         reject(new Error('API URL is not configured yet in assets/config.js'));
         return;
       }
@@ -40,7 +41,7 @@ window.RESTAURANT_SYSTEM = {
       const timer = setTimeout(() => {
         cleanup();
         reject(new Error('API request timed out'));
-      }, 30000);
+      }, window.RESTAURANT_SYSTEM.apiTimeoutMs || 30000);
 
       function cleanup(){
         clearTimeout(timer);
@@ -62,7 +63,7 @@ window.RESTAURANT_SYSTEM = {
       script.src = buildUrl(baseUrl, {
         action: action,
         callback: callback,
-        payload: JSON.stringify(payload || {})
+        payload: typeof payload === 'string' ? payload : JSON.stringify(payload || {})
       });
       document.body.appendChild(script);
     });
