@@ -133,7 +133,7 @@
           </div>
           <label class="field"><span>Email</span><input id="cEmail" type="email" autocomplete="email"></label>
           <div class="split">
-            <label class="field"><span>Coupon</span><input id="coupon" placeholder="Optional"></label>
+            <label class="field"><span>Coupon</span><input id="coupon" placeholder="Optional" oninput="renderCart()"></label>
             <label class="field"><span>Payment</span><select id="payMethod"><option>Not selected</option><option>Payment link</option><option>Cash</option><option>Zelle</option><option>Cash App</option></select></label>
           </div>
           <label class="field"><span>Notes</span><textarea id="notes" placeholder="No onions, extra sauce, etc."></textarea></label>
@@ -148,8 +148,32 @@
     <div class="modal-card">
       <div id="receipt"></div>
       <div class="toolbar" style="justify-content:flex-end; margin-top:18px;">
-        <button class="btn secondary" type="button" onclick="receiptModal.classList.remove('open')">Close</button>
+        <button class="btn secondary" type="button" onclick="$('receiptModal').classList.remove('open')">Close</button>
         <button id="payBtn" class="btn dark" style="display:none" type="button" onclick="payNow()">Pay Securely</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="agreementModal" class="modal">
+    <div class="modal-card compact-modal">
+      <span class="badge dark">Order agreement</span>
+      <h2>Confirm your order</h2>
+      <p id="agreementText" class="section-sub">Please confirm that your order details are correct before placing the order.</p>
+      <div class="toolbar" style="justify-content:flex-end; margin-top:18px;">
+        <button class="btn secondary" type="button" onclick="$('agreementModal').classList.remove('open')">Review again</button>
+        <button class="btn" type="button" onclick="acceptAgreementAndPlace()">I agree and place order</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="paymentModal" class="modal">
+    <div class="modal-card compact-modal">
+      <span class="badge green">Secure payment</span>
+      <h2 id="paymentTitle">Pay securely</h2>
+      <p id="paymentMessage" class="section-sub"></p>
+      <div class="toolbar" style="justify-content:flex-end; margin-top:18px;">
+        <button class="btn secondary" type="button" onclick="$('paymentModal').classList.remove('open')">Stay here</button>
+        <button id="continuePaymentBtn" class="btn dark" type="button" onclick="continuePayment()">Continue to payment</button>
       </div>
     </div>
   </div>
@@ -160,7 +184,7 @@
         <strong id="footerBusiness">Restaurant Test</strong>
         <p class="section-sub" style="color:#f7e5cd;">Online ordering, pickup QR, admin dashboard, and live delivery tracking.</p>
       </div>
-      <div><strong id="licenseName">Restaurant Test Ordering System</strong><br><span>Licensed / Powered by <span id="licenseBy">Visual Event Network</span></span></div>
+      <div><strong id="licenseName">Restaurant Test Ordering System</strong><br><span>Licensed / Powered by <span id="licenseBy">Visual Event Network</span> <span id="footerYear"></span></span></div>
       <div><span id="footerAddress"></span><br><span id="footerPhone"></span></div>
     </div>
   </footer>
@@ -222,6 +246,8 @@
       $('footerPhone').textContent = cfg.phone || '';
       $('licenseName').textContent = cfg.licenseName || window.RESTAURANT_SYSTEM.licenseName || 'Restaurant Test Ordering System';
       $('licenseBy').textContent = cfg.licenseBy || window.RESTAURANT_SYSTEM.licenseBy || 'Visual Event Network';
+      $('footerYear').textContent = new Date().getFullYear();
+      $('agreementText').textContent = cfg.agreementText || 'Please confirm that your order details are correct before placing the order.';
       if(cfg.instagramUrl){ $('igLine').style.display = ''; $('ig').href = cfg.instagramUrl; }
       if(cfg.heroImage){ document.documentElement.style.setProperty('--hero-image', "url('" + cfg.heroImage + "')"); }
     }
@@ -265,8 +291,16 @@
       const isDelivery = $('oType') && $('oType').value === 'delivery';
       const deliveryFee = isDelivery ? Number(cfg.fixedDeliveryFee || cfg.deliveryFee || 0) : 0;
       const tip = Number($('tip') ? $('tip').value : 0) || 0;
-      const tax = subtotal * Number(cfg.taxRate || 0);
-      return { rows, subtotal, deliveryFee, tip, tax, total: subtotal + deliveryFee + tip + tax };
+      const couponCode = $('coupon') ? $('coupon').value.trim().toUpperCase() : '';
+      const promo = couponCode ? promos.find(item => String(item.code || '').toUpperCase() === couponCode) : null;
+      let discount = 0;
+      if(promo && subtotal >= Number(promo.minSubtotal || 0)){
+        discount = String(promo.type || '').toLowerCase() === 'fixed' ? Number(promo.value || 0) : subtotal * (Number(promo.value || 0) / 100);
+      }
+      discount = Math.min(subtotal, Math.max(0, discount));
+      const taxableSubtotal = Math.max(0, subtotal - discount);
+      const tax = taxableSubtotal * Number(cfg.taxRate || 0);
+      return { rows, subtotal, discount, deliveryFee, tip, tax, total: taxableSubtotal + deliveryFee + tip + tax };
     }
 
     function renderCart(){
@@ -275,7 +309,7 @@
       $('cartCount2').textContent = count;
       const totals = calc();
       $('cartItems').innerHTML = totals.rows.map(row => `<div class="cart-line"><div><b>${RTApi.esc(row.item.name)}</b><span class="section-sub">${RTApi.money(row.item.price)} each</span><div class="qty"><button type="button" onclick="qty('${RTApi.esc(row.item.id)}', -1)">-</button><strong>${row.qty}</strong><button type="button" onclick="qty('${RTApi.esc(row.item.id)}', 1)">+</button></div></div><strong>${RTApi.money(Number(row.item.price || 0) * row.qty)}</strong></div>`).join('') || '<div class="empty">Your cart is empty.</div>';
-      $('totals').innerHTML = `<div class="total-line"><span>Subtotal</span><strong>${RTApi.money(totals.subtotal)}</strong></div><div class="total-line"><span>Tax</span><strong>${RTApi.money(totals.tax)}</strong></div><div class="total-line"><span>Delivery Fee</span><strong>${RTApi.money(totals.deliveryFee)}</strong></div><div class="total-line"><span>Tip</span><strong>${RTApi.money(totals.tip)}</strong></div><div class="total-line grand"><span>Total</span><strong>${RTApi.money(totals.total)}</strong></div>`;
+      $('totals').innerHTML = `<div class="total-line"><span>Subtotal</span><strong>${RTApi.money(totals.subtotal)}</strong></div><div class="total-line"><span>Discount</span><strong>-${RTApi.money(totals.discount)}</strong></div><div class="total-line"><span>Tax</span><strong>${RTApi.money(totals.tax)}</strong></div><div class="total-line"><span>Delivery Fee</span><strong>${RTApi.money(totals.deliveryFee)}</strong></div><div class="total-line"><span>Tip</span><strong>${RTApi.money(totals.tip)}</strong></div><div class="total-line grand"><span>Total</span><strong>${RTApi.money(totals.total)}</strong></div>`;
     }
 
     function openCart(){ $('drawer').classList.add('open'); $('drawer').setAttribute('aria-hidden', 'false'); }
@@ -284,7 +318,7 @@
 
     async function place(){
       if(!payload().length){ toast('Cart is empty'); return; }
-      if(!$('agree').checked){ toast('Accept the agreement first'); return; }
+      if(!$('agree').checked){ $('agreementModal').classList.add('open'); return; }
       const orderType = $('oType').value;
       if(orderType === 'delivery' && !$('dAddr').value.trim()){ toast('Delivery address is required'); return; }
       const request = {
@@ -318,6 +352,12 @@
       }
     }
 
+    function acceptAgreementAndPlace(){
+      $('agree').checked = true;
+      $('agreementModal').classList.remove('open');
+      place();
+    }
+
     function renderReceipt(order, paymentConfig){
       payments = paymentConfig || payments || { enabled: 'No' };
       const rows = (order.items || []).map(item => `<div class="cart-line"><span>${RTApi.esc(item.quantity)}x ${RTApi.esc(item.name)}</span><strong>${RTApi.money(item.lineTotal || (item.price * item.quantity))}</strong></div>`).join('');
@@ -329,7 +369,16 @@
 
     function payNow(){
       if(!payments || !payments.link) return;
-      if(confirm(payments.redirectMessage || 'You are being redirected to the restaurant secure payment page.')) window.open(payments.link, '_blank');
+      $('paymentTitle').textContent = payments.buttonLabel || 'Pay Securely';
+      $('paymentMessage').textContent = payments.redirectMessage || 'You are being redirected to the restaurant secure payment page.';
+      $('continuePaymentBtn').textContent = payments.buttonLabel || 'Continue to payment';
+      $('paymentModal').classList.add('open');
+    }
+
+    function continuePayment(){
+      if(!payments || !payments.link) return;
+      window.open(payments.link, '_blank');
+      $('paymentModal').classList.remove('open');
     }
 
     init();
