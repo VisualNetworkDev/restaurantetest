@@ -3,15 +3,16 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Track Order · Restaurant Test</title>
+  <title>Track Order - Restaurant Test</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23251712'/%3E%3Ctext x='32' y='42' font-size='34' text-anchor='middle'%3E%F0%9F%8D%BD%EF%B8%8F%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="assets/restaurant.css">
   <script src="assets/config.js"></script>
 </head>
 <body>
   <div class="topbar">
     <div class="container nav">
-      <a class="brand" href="index.html"><span class="brand-mark">🍽️</span><span><span id="brandName">Restaurant Test</span><small>Order tracking</small></span></a>
-      <div class="navlinks"><a href="index.html">Back to restaurant</a><button type="button" onclick="loadTracking()">Refresh</button></div>
+      <a class="brand" href="index.html"><span class="brand-mark">RT</span><span><span id="brandName">Restaurant Test</span><small>Order tracking</small></span></a>
+      <div class="navlinks"><a href="index.html">Back to restaurant</a><button type="button" onclick="loadTracking()">Refresh</button><button id="notifyBtn" type="button" onclick="enableNotifications()">Notify me</button></div>
     </div>
   </div>
 
@@ -56,6 +57,7 @@
     const token = params.get('token') || '';
     const deliverySteps = ['Pending', 'Confirmed', 'Preparing', 'Ready for delivery', 'On the way', 'Delivered', 'Finalized'];
     const pickupSteps = ['Pending', 'Confirmed', 'Preparing', 'Ready for pickup', 'Picked up', 'Finalized'];
+    const statusStorageKey = 'rt_tracking_status_' + token;
 
     function toast(message){ const box = document.getElementById('toast'); box.textContent = message; box.classList.add('show'); setTimeout(() => box.classList.remove('show'), 2500); }
     function mapQuery(data){ if(data.delivery && data.delivery.lat && data.delivery.lng) return data.delivery.lat + ',' + data.delivery.lng; return data.destinationAddress || data.restaurantAddress || cfg.businessName || 'Restaurant'; }
@@ -68,6 +70,25 @@
       return steps.map((step, index) => `<div class="timeline-step ${index <= currentIndex ? 'done' : ''}"><span class="timeline-dot"></span><span>${RTApi.esc(step)}</span></div>`).join('');
     }
 
+    async function enableNotifications(){
+      if(!('Notification' in window)){ toast('Notifications are not supported here'); return; }
+      const permission = await Notification.requestPermission();
+      toast(permission === 'granted' ? 'Notifications enabled' : 'Notifications not enabled');
+    }
+
+    function maybeNotifyStatus(data){
+      if(!token || !data.status) return;
+      const previous = localStorage.getItem(statusStorageKey);
+      if(previous && previous !== data.status){
+        const message = 'Order ' + (data.orderId || '') + ' is now ' + data.status;
+        toast(message);
+        if('Notification' in window && Notification.permission === 'granted'){
+          new Notification(data.restaurantName || 'Order update', { body: message });
+        }
+      }
+      localStorage.setItem(statusStorageKey, data.status);
+    }
+
     function render(data){
       const restaurantName = data.restaurantName || cfg.businessName || 'Restaurant Test';
       document.getElementById('brandName').textContent = restaurantName;
@@ -78,6 +99,7 @@
       document.getElementById('statusBadge').textContent = data.status || 'Pending';
       document.getElementById('statusBadge').className = 'badge green';
       document.getElementById('messageText').textContent = data.message || '';
+      maybeNotifyStatus(data);
       document.getElementById('footerStatus').textContent = data.status || '';
       document.getElementById('timeline').innerHTML = buildTimeline(data.status, data.orderType);
 
