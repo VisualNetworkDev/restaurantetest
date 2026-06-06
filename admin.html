@@ -270,6 +270,7 @@
         $('adminApp').style.display = 'block';
         $('sessionLabel').textContent = (currentUser.email || 'Admin') + ' - ' + (currentUser.role || 'admin');
         renderAll();
+        openRequestedPanel();
       } catch(error) {
         localStorage.removeItem('rt_admin_session');
         $('loginScreen').style.display = 'grid';
@@ -303,6 +304,19 @@
       $('pageTitle').textContent = titles[name][0];
       $('pageSub').textContent = titles[name][1];
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function openRequestedPanel(){
+      const params = new URLSearchParams(location.search);
+      const requestedPanel = params.get('panel');
+      const allowedPanels = ['dashboard','orders','delivery','menu','promotions','testimonials','settings','payments','users','pickup','logs'];
+      if(requestedPanel && allowedPanels.indexOf(requestedPanel) !== -1) showPanel(requestedPanel, null, true);
+      const requestedOrder = params.get('order');
+      if(!requestedOrder) return;
+      setTimeout(() => {
+        const card = Array.from(document.querySelectorAll('.delivery-card')).find(item => item.getAttribute('data-order-id') === requestedOrder);
+        if(card) card.scrollIntoView({ block: 'start', behavior: 'smooth' });
+      }, 120);
     }
 
     function goBackPanel(){
@@ -367,8 +381,10 @@
     }
 
     function deliveryOrders(){
+      const requestedOrderId = new URLSearchParams(location.search).get('order') || '';
       return (adminData.orders || []).filter(order => {
-        const active = order.type === 'delivery' && ['Confirmed', 'Preparing', 'Ready for delivery', 'On the way'].indexOf(order.status) !== -1;
+        const requested = requestedOrderId && String(order.orderId || '') === String(requestedOrderId);
+        const active = order.type === 'delivery' && (requested || ['Confirmed', 'Preparing', 'Ready for delivery', 'On the way'].indexOf(order.status) !== -1);
         if(!active) return false;
         if(currentUser && String(currentUser.role || '').toLowerCase() === 'delivery'){
           return String(order.assignedDeliveryEmail || '').toLowerCase() === String(currentUser.email || '').toLowerCase();
@@ -384,7 +400,7 @@
       const list = deliveryOrders();
       $('deliveryList').innerHTML = list.map(order => {
         const address = order.deliveryAddress || order.address || '';
-        return `<div class="card delivery-card"><div class="delivery-card-header"><div><span class="badge green">${RTApi.esc(order.status)}</span><h2>${RTApi.esc(order.orderId)}</h2><p><strong>${RTApi.esc(order.customerName)}</strong><br>${RTApi.esc(order.customerPhone)}<br><span class="section-sub">${RTApi.esc(order.customerEmail || '')}</span></p><p class="section-sub"><strong>Destination:</strong> ${RTApi.esc(address)}</p><p class="section-sub"><strong>Instructions:</strong> ${RTApi.esc(order.deliveryInstructions || order.customerNotes || 'No instructions')}</p><div class="order-items">${itemListHtml(order.items)}</div></div><div><iframe class="admin-map" src="${embeddedMapUrl(address)}" loading="lazy"></iframe><div class="delivery-actions"><a class="btn secondary" target="_blank" href="${googleMapsUrl(address)}">Google Maps</a><a class="btn secondary" target="_blank" href="${appleMapsUrl(address)}">Apple Maps</a><a class="btn secondary" href="tel:${RTApi.esc(order.customerPhone)}">Call</a></div></div></div><div class="delivery-actions"><button class="btn" type="button" onclick="startAdminDelivery('${RTApi.esc(order.orderId)}')">Start GPS</button><button class="btn secondary" type="button" onclick="sendAdminDeliveryUpdate('${RTApi.esc(order.orderId)}')">Update GPS</button><button class="btn success" type="button" onclick="completeAdminDelivery('${RTApi.esc(order.orderId)}')">Delivered</button>${order.trackingURL ? '<a class="btn dark" target="_blank" href="' + RTApi.esc(order.trackingURL) + '">Customer Tracking</a>' : ''}</div></div>`;
+        return `<div class="card delivery-card" data-order-id="${RTApi.esc(order.orderId)}"><div class="delivery-card-header"><div><span class="badge green">${RTApi.esc(order.status)}</span><h2>${RTApi.esc(order.orderId)}</h2><p><strong>${RTApi.esc(order.customerName)}</strong><br>${RTApi.esc(order.customerPhone)}<br><span class="section-sub">${RTApi.esc(order.customerEmail || '')}</span></p><p class="section-sub"><strong>Destination:</strong> ${RTApi.esc(address)}</p><p class="section-sub"><strong>Instructions:</strong> ${RTApi.esc(order.deliveryInstructions || order.customerNotes || 'No instructions')}</p><div class="order-items">${itemListHtml(order.items)}</div></div><div><iframe class="admin-map" src="${embeddedMapUrl(address)}" loading="lazy"></iframe><div class="delivery-actions"><a class="btn secondary" target="_blank" href="${googleMapsUrl(address)}">Google Maps</a><a class="btn secondary" target="_blank" href="${appleMapsUrl(address)}">Apple Maps</a><a class="btn secondary" href="tel:${RTApi.esc(order.customerPhone)}">Call</a></div></div></div><div class="delivery-actions"><button class="btn" type="button" onclick="startAdminDelivery('${RTApi.esc(order.orderId)}')">Start GPS</button><button class="btn secondary" type="button" onclick="sendAdminDeliveryUpdate('${RTApi.esc(order.orderId)}')">Update GPS</button><button class="btn success" type="button" onclick="completeAdminDelivery('${RTApi.esc(order.orderId)}')">Delivered</button>${order.trackingURL ? '<a class="btn dark" target="_blank" href="' + RTApi.esc(order.trackingURL) + '">Customer Tracking</a>' : ''}</div></div>`;
       }).join('') || '<div class="empty">No delivery orders ready right now.</div>';
     }
 
