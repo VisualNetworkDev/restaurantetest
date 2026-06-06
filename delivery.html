@@ -8,16 +8,19 @@
   <script src="assets/config.js"></script>
 </head>
 <body>
-  <section class="login-screen">
-    <div class="login-box">
+  <section class="bridge-screen">
+    <div class="bridge-box">
       <div class="brand" style="color:var(--ink); margin-bottom:18px;">
         <span class="brand-mark">🍽️</span>
-        <span><strong>Delivery is inside Admin</strong><small style="color:var(--muted);">No delivery password page is used.</small></span>
+        <span><strong>Delivery is managed inside the Admin panel.</strong><small style="color:var(--muted);">Staff handles assigned orders from Admin.</small></span>
       </div>
       <p class="section-sub">Open Admin, go to the Delivery section, select the active order, use Google Maps or Apple Maps, start GPS tracking, and mark the order Delivered.</p>
-      <a class="btn full" href="admin.html">Open Admin Delivery</a>
+      <a id="adminLink" class="btn full" href="admin.html">Open Admin</a>
       <a class="btn secondary full" style="margin-top:10px;" href="index.html">Back to restaurant</a>
     </div>
   </section>
+  <script>
+    document.getElementById('adminLink').href = (window.RESTAURANT_SYSTEM && window.RESTAURANT_SYSTEM.adminPage) || 'admin.html';
+  </script>
 </body>
 </html>
