@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'rf-example-pwa-v10';
+const CACHE_VERSION = 'rf-example-pwa-v11';
 const CORE_ASSETS = [
   './offline.html',
   './assets/config.js',
