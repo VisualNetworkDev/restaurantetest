@@ -1,10 +1,11 @@
-const CACHE_VERSION = 'rf-example-pwa-v8';
+const CACHE_VERSION = 'rf-example-pwa-v10';
 const CORE_ASSETS = [
   './offline.html',
   './assets/config.js',
   './assets/jsQR.js',
   './assets/restaurant.css',
   './assets/pwa.js',
+  './assets/app-intro.js',
   './assets/i18n.js',
   './assets/icons/icon-192.png',
   './assets/icons/icon-512.png',
