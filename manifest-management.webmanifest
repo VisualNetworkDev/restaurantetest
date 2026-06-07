@@ -1,0 +1,53 @@
+{
+  "id": "restaurant-food-truck-example-management",
+  "name": "Restaurant/Food Truck Example Management",
+  "short_name": "Food Ops",
+  "description": "Management tools for orders, delivery, menu, promotions, reviews, payments, and staff.",
+  "start_url": "./admin.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fff8ef",
+  "theme_color": "#23140d",
+  "categories": ["business", "productivity", "food"],
+  "icons": [
+    {
+      "src": "assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Orders",
+      "short_name": "Orders",
+      "url": "./admin.html?panel=orders",
+      "icons": [{ "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Delivery",
+      "short_name": "Delivery",
+      "url": "./admin.html?panel=delivery",
+      "icons": [{ "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Scan QR",
+      "short_name": "Scan QR",
+      "url": "./admin.html?panel=pickup",
+      "icons": [{ "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ]
+}

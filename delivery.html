@@ -1,0 +1,34 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Delivery - Restaurant/Food Truck Example</title>
+  <meta name="theme-color" content="#23140d">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Food Ops">
+  <link rel="manifest" href="manifest-management.webmanifest">
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23251712'/%3E%3Ctext x='32' y='42' font-size='34' text-anchor='middle'%3E%F0%9F%8D%BD%EF%B8%8F%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="assets/restaurant.css">
+  <script src="assets/config.js"></script>
+  <script src="assets/pwa.js" defer></script>
+</head>
+<body>
+  <section class="bridge-screen">
+    <div class="bridge-box">
+      <div class="brand" style="color:var(--ink); margin-bottom:18px;">
+        <span class="brand-mark">RF</span>
+        <span><strong>Delivery is managed inside the management panel.</strong><small style="color:var(--muted);">Staff handles assigned orders from the delivery section.</small></span>
+      </div>
+      <p class="section-sub">Open the management panel, go to the Delivery section, select the active order, use Google Maps or Apple Maps, start GPS tracking, and mark the order Delivered.</p>
+      <a id="adminLink" class="btn full" href="admin.html">Open management panel</a>
+      <a class="btn secondary full" style="margin-top:10px;" href="index.html">Back to restaurant</a>
+    </div>
+  </section>
+  <script>
+    document.getElementById('adminLink').href = (window.RESTAURANT_SYSTEM && window.RESTAURANT_SYSTEM.adminPage) || 'admin.html';
+  </script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+{
+  "id": "restaurant-food-truck-example-client",
+  "name": "Restaurant/Food Truck Example",
+  "short_name": "Food Truck",
+  "description": "Customer ordering, pickup QR, receipts, and order tracking.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fff8ef",
+  "theme_color": "#23140d",
+  "categories": ["food", "shopping", "business"],
+  "icons": [
+    {
+      "src": "assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Start order",
+      "short_name": "Order",
+      "url": "./index.html#menu",
+      "icons": [{ "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Track order",
+      "short_name": "Track",
+      "url": "./tracking.html",
+      "icons": [{ "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ]
+}
