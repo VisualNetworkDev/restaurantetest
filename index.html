@@ -14,9 +14,18 @@
   <link rel="stylesheet" href="assets/restaurant.css">
   <script src="assets/config.js"></script>
   <script src="assets/pwa.js" defer></script>
+  <script src="assets/app-intro.js"></script>
   <script src="assets/i18n.js" defer></script>
 </head>
 <body>
+  <div id="appIntro" class="app-intro" data-auto-hide="false" data-timeout="18000" role="status" aria-live="polite">
+    <div class="intro-card">
+      <div class="intro-brand"><span class="intro-mark">RF</span><span><strong>Restaurant/Food Truck Example</strong><small>Order - Pickup - Delivery</small></span></div>
+      <div class="intro-main"><div class="intro-plate"></div><h2>Preparing your menu</h2><p>Loading fresh items, offers, reviews, and checkout settings.</p></div>
+      <div class="intro-status"><span id="appIntroStep">Connecting to the restaurant...</span><div class="intro-dots"><i></i><i></i><i></i></div></div>
+    </div>
+  </div>
+
   <header class="topbar">
     <div class="container nav">
       <a class="brand" href="index.html">
@@ -275,6 +284,7 @@
     function toast(message){ const box = $('toast'); box.textContent = message; box.classList.add('show'); setTimeout(() => box.classList.remove('show'), 2500); }
 
     async function init(){
+      if(window.RTIntro) RTIntro.setStep('Loading menu and restaurant settings...');
       try {
         const result = await Promise.all([
           RTApi.client('getRestaurantConfig', {}),
@@ -295,6 +305,8 @@
       } catch(error) {
         toast(error.message || String(error));
         $('menuGrid').innerHTML = '<div class="empty">Could not load menu. Check Client API URL.</div>';
+      } finally {
+        if(window.RTIntro) RTIntro.hide(220);
       }
     }
 
