@@ -1,6 +1,12 @@
-const CACHE_VERSION = 'rf-example-pwa-v11';
+const CACHE_VERSION = 'rf-example-pwa-v23';
 const CORE_ASSETS = [
+  './index.html',
+  './admin.html',
+  './tracking.html',
+  './delivery.html',
   './offline.html',
+  './manifest-client.webmanifest',
+  './manifest-management.webmanifest',
   './assets/config.js',
   './assets/jsQR.js',
   './assets/restaurant.css',
