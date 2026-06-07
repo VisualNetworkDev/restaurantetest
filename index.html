@@ -92,7 +92,7 @@
       <div class="track-portal">
         <div class="card track-card">
           <span class="badge green">Último pedido</span>
-          <div id="lastOrderBox" class="section-sub" style="margin-top:12px;">No hay un pedido guardado en este dispositivo todavía.</div>
+          <div id="lastOrderBox" class="section-sub" style="margin-top:12px;">No hay un pedido reciente guardado en este dispositivo.</div>
         </div>
         <div class="card track-card">
           <span class="badge dark">Buscar pedido</span>
@@ -499,27 +499,54 @@
       catch(error) { return ''; }
     }
 
-    function renderLastOrderBox(){
+    const noSavedOrderMessage = 'No hay un pedido reciente guardado en este dispositivo.';
+
+    function setLastOrderMessage(message){
+      const box = $('lastOrderBox');
+      if(!box) return;
+      box.textContent = message || noSavedOrderMessage;
+    }
+
+    function clearSavedOrder(message){
+      localStorage.removeItem('rt_last_order');
+      setLastOrderMessage(message);
+    }
+
+    async function renderLastOrderBox(){
       const box = $('lastOrderBox');
       if(!box) return;
       try {
         const data = JSON.parse(localStorage.getItem('rt_last_order') || '{}');
-        if(data.trackingURL){
-          box.innerHTML = `<strong>${RTApi.esc(data.orderId || 'Recent order')}</strong><br><span>Current saved status: ${RTApi.esc(data.status || 'Received')}</span><div class="toolbar" style="margin-top:12px;"><button class="btn" type="button" onclick="openSavedTracking()">View order status</button></div>`;
-        } else {
-          box.textContent = 'No hay un pedido guardado en este dispositivo todavía.';
+        const token = trackingTokenFromUrl(data.trackingURL || '');
+        if(!token){
+          clearSavedOrder();
+          return;
         }
+        box.innerHTML = '<span class="loading-inline"></span> Checking your recent order...';
+        const tracking = await RTApi.delivery('getTrackingInfo', { token });
+        box.innerHTML = `<strong>${RTApi.esc(tracking.orderId || data.orderId || 'Recent order')}</strong><br><span>Estado actual: ${RTApi.esc(tracking.status || data.status || 'Received')}</span><div class="toolbar" style="margin-top:12px;"><button class="btn" type="button" onclick="openSavedTracking()">Ver estado del pedido</button></div>`;
       } catch(error) {
-        box.textContent = 'No hay un pedido guardado en este dispositivo todavía.';
+        clearSavedOrder('No hay pedidos recientes disponibles en este dispositivo.');
       }
     }
 
     async function openSavedTracking(){
-      const data = JSON.parse(localStorage.getItem('rt_last_order') || '{}');
-      const token = trackingTokenFromUrl(data.trackingURL || '');
-      if(!token){ toast('Tracking details are not saved on this device'); return; }
-      showClientSection('track');
-      await loadInlineTracking({ token });
+      try {
+        const data = JSON.parse(localStorage.getItem('rt_last_order') || '{}');
+        const token = trackingTokenFromUrl(data.trackingURL || '');
+        if(!token){
+          clearSavedOrder();
+          toast('No recent order is saved on this device');
+          return;
+        }
+        showClientSection('track');
+        await loadInlineTracking({ token });
+      } catch(error) {
+        clearSavedOrder('Ese pedido ya no esta disponible en este dispositivo.');
+        const target = $('inlineTrackingResult');
+        if(target) target.innerHTML = '';
+        toast('Ese pedido ya no esta disponible. Usa el Order ID del recibo para buscarlo.');
+      }
     }
 
     async function openEmbeddedTracking(url){
