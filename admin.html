@@ -15,9 +15,18 @@
   <script src="assets/config.js"></script>
   <script src="assets/jsQR.js"></script>
   <script src="assets/pwa.js" defer></script>
+  <script src="assets/app-intro.js"></script>
   <script src="assets/i18n.js" defer></script>
 </head>
 <body class="admin-body">
+  <div id="appIntro" class="app-intro" data-auto-hide="false" data-timeout="18000" role="status" aria-live="polite">
+    <div class="intro-card">
+      <div class="intro-brand"><span class="intro-mark">RF</span><span><strong>Restaurant/Food Truck Example</strong><small>Management app</small></span></div>
+      <div class="intro-main"><div class="intro-plate"></div><h2>Opening management</h2><p>Preparing orders, delivery tools, reviews, permissions, and settings.</p></div>
+      <div class="intro-status"><span id="appIntroStep">Checking secure session...</span><div class="intro-dots"><i></i><i></i><i></i></div></div>
+    </div>
+  </div>
+
   <section id="loginScreen" class="login-screen">
     <div class="login-box">
       <div class="brand" style="margin-bottom:22px; color:var(--ink);">
@@ -44,7 +53,7 @@
           <button data-panel="delivery" onclick="showPanel('delivery', this)">Delivery</button>
           <button data-panel="menu" onclick="showPanel('menu', this)">Menu</button>
           <button data-panel="promotions" onclick="showPanel('promotions', this)">Promotions</button>
-          <button data-panel="testimonials" onclick="showPanel('testimonials', this)">Testimonials</button>
+          <button data-panel="testimonials" onclick="showPanel('testimonials', this)">Reviews</button>
           <button data-panel="settings" onclick="showPanel('settings', this)">Settings</button>
           <button data-panel="pickup" onclick="showPanel('pickup', this)">Scan QR</button>
           <button data-panel="payments" onclick="showPanel('payments', this)">Payments</button>
@@ -69,15 +78,15 @@
 
       <section id="panel-dashboard" class="panel active">
         <div class="admin-menu-grid">
-          <button class="menu-tile" onclick="showPanel('orders')"><b>Orders</b><span class="section-sub">Manage pickup, delivery, totals, and status.</span></button>
-          <button class="menu-tile" onclick="showPanel('delivery')"><b>Delivery</b><span class="section-sub">Open route, start GPS, update tracking, deliver.</span></button>
-          <button class="menu-tile" onclick="showPanel('menu')"><b>Menu</b><span class="section-sub">Edit dishes, prices, availability, and photos.</span></button>
-          <button class="menu-tile" onclick="showPanel('promotions')"><b>Promotions</b><span class="section-sub">Create coupons, dates, and active discounts.</span></button>
-          <button class="menu-tile" onclick="showPanel('testimonials')"><b>Testimonials</b><span class="section-sub">Control visible customer reviews and ratings.</span></button>
-          <button class="menu-tile" onclick="showPanel('settings')"><b>Settings</b><span class="section-sub">Restaurant information and fixed delivery fee.</span></button>
-          <button class="menu-tile" onclick="showPanel('pickup')"><b>Scan QR</b><span class="section-sub">Verify pickup/delivery QR and complete orders.</span></button>
-          <button class="menu-tile" onclick="showPanel('payments')"><b>Payments</b><span class="section-sub">Configure payment links, cash, and verification notes.</span></button>
-          <button class="menu-tile" onclick="showPanel('users')"><b>Users</b><span class="section-sub">Create staff accounts and roles.</span></button>
+          <button class="menu-tile" data-panel="orders" onclick="showPanel('orders')"><b>Orders</b><span class="section-sub">Manage pickup, delivery, totals, and status.</span></button>
+          <button class="menu-tile" data-panel="delivery" onclick="showPanel('delivery')"><b>Delivery</b><span class="section-sub">Open route, start GPS, update tracking, deliver.</span></button>
+          <button class="menu-tile" data-panel="menu" onclick="showPanel('menu')"><b>Menu</b><span class="section-sub">Edit dishes, prices, availability, and photos.</span></button>
+          <button class="menu-tile" data-panel="promotions" onclick="showPanel('promotions')"><b>Promotions</b><span class="section-sub">Create coupons, dates, and active discounts.</span></button>
+          <button class="menu-tile" data-panel="testimonials" onclick="showPanel('testimonials')"><b>Reviews</b><span class="section-sub">Approve or hide customer reviews from the public page.</span></button>
+          <button class="menu-tile" data-panel="settings" onclick="showPanel('settings')"><b>Settings</b><span class="section-sub">Restaurant information and fixed delivery fee.</span></button>
+          <button class="menu-tile" data-panel="pickup" onclick="showPanel('pickup')"><b>Scan QR</b><span class="section-sub">Verify pickup/delivery QR and complete orders.</span></button>
+          <button class="menu-tile" data-panel="payments" onclick="showPanel('payments')"><b>Payments</b><span class="section-sub">Configure payment links, cash, and verification notes.</span></button>
+          <button class="menu-tile" data-panel="users" onclick="showPanel('users')"><b>Users</b><span class="section-sub">Create staff accounts and section permissions.</span></button>
         </div>
         <div id="statsGrid" class="stat-grid"></div>
       </section>
@@ -140,16 +149,12 @@
       </section>
 
       <section id="panel-testimonials" class="panel">
-        <div class="grid grid-2">
-          <div class="card" style="padding:24px;">
-            <h2 style="margin-top:0;">Customer feedback</h2>
-            <label class="field"><span>Name</span><input id="testName"></label>
-            <label class="field"><span>Text</span><textarea id="testText"></textarea></label>
-            <div class="split"><label class="field"><span>Rating</span><input id="testRating" type="number" min="1" max="5" step="1" value="5"></label><label class="field"><span>Status</span><select id="testVisible"><option>Pending</option><option>Yes</option><option>No</option></select></label></div>
-            <div class="toolbar"><button class="btn" type="button" onclick="saveTestimonial()">Save review</button><button class="btn secondary" type="button" onclick="clearTestimonialForm()">Clear</button></div>
-          </div>
-          <div id="testimonialsList" class="grid"></div>
+        <div class="card" style="padding:24px; margin-bottom:18px;">
+          <span class="badge dark">Customer reviews</span>
+          <h2 style="margin-bottom:6px;">Review approval inbox</h2>
+          <p class="section-sub">Reviews submitted from the customer page arrive here. Staff can approve them for the public page, hide them, or keep them pending. The original customer text is not edited here.</p>
         </div>
+        <div id="testimonialsList" class="grid grid-3"></div>
       </section>
 
       <section id="panel-payments" class="panel">
@@ -197,9 +202,13 @@
         <div class="card" style="padding:24px; margin-bottom:18px;">
           <h2 style="margin-top:0;">Create / update user</h2>
           <div class="split"><label class="field"><span>Name</span><input id="userName"></label><label class="field"><span>User / email</span><input id="userEmail"></label></div>
-          <div class="split"><label class="field"><span>Password</span><input id="userPassword"></label><label class="field"><span>Role</span><select id="userRole"><option>staff</option><option>admin</option><option>delivery</option><option>kitchen</option></select></label></div>
+          <div class="split"><label class="field"><span>Password</span><input id="userPassword"></label><label class="field"><span>Role</span><select id="userRole" onchange="applyRolePermissionPreset()"><option>staff</option><option>admin</option><option>delivery</option><option>kitchen</option></select></label></div>
           <div class="split"><label class="field"><span>Active</span><select id="userStatus"><option>Yes</option><option>No</option></select></label><label class="field"><span>Available</span><select id="userAvailable"><option>Yes</option><option>No</option></select></label></div>
-          <button class="btn" type="button" onclick="saveUser()">Save user</button>
+          <div class="permission-editor">
+            <div class="section-sub">Section permissions control what this user can see and do in the management app.</div>
+            <div id="permissionGrid" class="permission-grid"></div>
+          </div>
+          <div class="toolbar"><button class="btn" type="button" onclick="saveUser()">Save user</button><button class="btn secondary" type="button" onclick="clearUserPermissions()">Remove permissions</button><button class="btn secondary" type="button" onclick="clearUserForm()">Clear form</button></div>
         </div>
         <div id="usersList" class="grid grid-3"></div>
       </section>
@@ -246,11 +255,52 @@
     let qrDetector = null;
     let qrCanvas = null;
     let qrCanvasContext = null;
+    const ADMIN_SECTIONS = [
+      { key: 'dashboard', label: 'Dashboard' },
+      { key: 'orders', label: 'Orders' },
+      { key: 'delivery', label: 'Delivery' },
+      { key: 'menu', label: 'Menu' },
+      { key: 'promotions', label: 'Promotions' },
+      { key: 'testimonials', label: 'Reviews' },
+      { key: 'settings', label: 'Settings' },
+      { key: 'pickup', label: 'Scan QR' },
+      { key: 'payments', label: 'Payments' },
+      { key: 'users', label: 'Users' }
+    ];
 
     function $(id){ return document.getElementById(id); }
     function toast(message){ const box = $('toast'); box.textContent = message; box.classList.add('show'); setTimeout(() => box.classList.remove('show'), 2600); }
     function adminPayload(payload = {}){ return Object.assign({ sessionToken, userAgent: navigator.userAgent }, payload); }
     async function adminCall(action, payload = {}){ return RTApi.admin(action, adminPayload(payload)); }
+    function userPermissions(){
+      const permissions = currentUser && Array.isArray(currentUser.permissions) ? currentUser.permissions : String((currentUser && (currentUser.functions || currentUser.allowedFunctions)) || '').split(',');
+      return permissions.map(item => String(item || '').trim()).filter(Boolean);
+    }
+    function canAccessPanel(name){
+      if(!name || name === 'dashboard') return true;
+      if(currentUser && String(currentUser.role || '').toLowerCase() === 'owner') return true;
+      return userPermissions().indexOf(name) !== -1;
+    }
+    function firstAllowedPanel(){
+      const found = ADMIN_SECTIONS.find(section => canAccessPanel(section.key));
+      return found ? found.key : 'dashboard';
+    }
+    function ensurePanelAccess(name){
+      if(canAccessPanel(name)) return true;
+      toast('You do not have access to that section');
+      return false;
+    }
+    function applyAccessControl(){
+      document.querySelectorAll('[data-panel]').forEach(element => {
+        const panel = element.getAttribute('data-panel');
+        element.style.display = canAccessPanel(panel) ? '' : 'none';
+      });
+      document.querySelectorAll('.panel').forEach(panel => {
+        const name = panel.id.replace('panel-', '');
+        if(!canAccessPanel(name)) panel.classList.remove('active');
+      });
+      if(!canAccessPanel(currentPanel)) showPanel(firstAllowedPanel(), null, true);
+    }
 
     async function login(){
       $('loginMessage').textContent = '';
@@ -274,24 +324,30 @@
     function logout(){ stopDeliveryWatch(); localStorage.removeItem('rt_admin_session'); location.reload(); }
 
     async function bootstrap(){
+      if(window.RTIntro) RTIntro.setStep('Loading management data...');
       try {
         adminData = await adminCall('bootstrap');
         currentUser = adminData.user;
         $('loginScreen').style.display = 'none';
         $('adminApp').style.display = 'block';
         $('sessionLabel').textContent = (currentUser.email || 'Team user') + ' - ' + (currentUser.role || 'manager');
+        renderPermissionEditor();
+        applyAccessControl();
         renderAll();
         openRequestedPanel();
+        if(window.RTIntro) RTIntro.hide(220);
       } catch(error) {
         localStorage.removeItem('rt_admin_session');
         $('loginScreen').style.display = 'grid';
         $('adminApp').style.display = 'none';
+        if(window.RTIntro) RTIntro.hide(220);
       }
     }
 
-    async function refreshAll(){ adminData = await adminCall('bootstrap'); renderAll(); toast('Updated'); }
+    async function refreshAll(){ adminData = await adminCall('bootstrap'); currentUser = adminData.user || currentUser; renderAll(); toast('Updated'); }
 
     function showPanel(name, button, skipHistory){
+      if(!ensurePanelAccess(name)) return;
       if(currentPanel && currentPanel !== name && !skipHistory) panelHistory.push(currentPanel);
       currentPanel = name;
       document.querySelectorAll('.panel').forEach(panel => panel.classList.remove('active'));
@@ -305,7 +361,7 @@
         delivery: ['Delivery', 'Open maps, start GPS, update tracking, and mark deliveries complete.'],
         menu: ['Menu', 'Edit menu items and upload optimized photos.'],
         promotions: ['Promotions', 'Create and manage active discounts.'],
-        testimonials: ['Testimonials', 'Approve, reject, and publish real customer reviews.'],
+        testimonials: ['Reviews', 'Approve, reject, and publish real customer reviews.'],
         payments: ['Payments', 'Configure cash, app links, and payment verification notes.'],
         settings: ['Settings', 'Restaurant information and fixed delivery fee.'],
         users: ['Users', 'Create staff users and reset access.'],
@@ -320,7 +376,8 @@
       const params = new URLSearchParams(location.search);
       const requestedPanel = params.get('panel');
       const allowedPanels = ['dashboard','orders','delivery','menu','promotions','testimonials','settings','payments','users','pickup'];
-      if(requestedPanel && allowedPanels.indexOf(requestedPanel) !== -1) showPanel(requestedPanel, null, true);
+      if(requestedPanel && allowedPanels.indexOf(requestedPanel) !== -1 && canAccessPanel(requestedPanel)) showPanel(requestedPanel, null, true);
+      else if(!canAccessPanel(currentPanel)) showPanel(firstAllowedPanel(), null, true);
       const requestedOrder = params.get('order');
       if(!requestedOrder) return;
       setTimeout(() => {
@@ -334,7 +391,18 @@
       showPanel(previous, null, true);
     }
 
-    function renderAll(){ renderDashboard(); renderOrders(); renderDelivery(); renderMenu(); renderPromotions(); renderTestimonials(); fillPayments(); fillSettings(); renderUsers(); }
+    function renderAll(){
+      applyAccessControl();
+      renderDashboard();
+      if(canAccessPanel('orders')) renderOrders();
+      if(canAccessPanel('delivery')) renderDelivery();
+      if(canAccessPanel('menu')) renderMenu();
+      if(canAccessPanel('promotions')) renderPromotions();
+      if(canAccessPanel('testimonials')) renderTestimonials();
+      if(canAccessPanel('payments')) fillPayments();
+      if(canAccessPanel('settings')) fillSettings();
+      if(canAccessPanel('users')) renderUsers();
+    }
 
     function renderDashboard(){
       const dashboard = adminData.dashboard || {};
@@ -543,26 +611,17 @@
 
     function renderTestimonials(){
       const testimonials = adminData.testimonials || [];
-      $('testimonialsList').innerHTML = testimonials.map((item, index) => `<div class="card" style="padding:18px;"><strong>${RTApi.esc(item.Name || item.name || '')}</strong><p class="section-sub">${RTApi.esc(item.Text || item.text || '')}</p><p class="section-sub">Rating ${RTApi.esc(item.Rating || item.rating || 5)} | Status ${RTApi.esc(item.Visible || item.visible || 'Pending')}</p><div class="toolbar"><button class="btn secondary" type="button" onclick="editTestimonialAt(${index})">Edit</button><button class="btn dark" type="button" onclick="toggleTestimonial(${index})">${(item.Visible || item.visible || 'Pending') === 'Yes' ? 'Hide' : 'Approve'}</button></div></div>`).join('') || '<div class="empty">No reviews configured.</div>';
+      $('testimonialsList').innerHTML = testimonials.map(item => {
+        const visible = item.visible || item.Visible || 'Pending';
+        const badgeClass = visible === 'Yes' ? 'green' : (visible === 'No' ? 'red' : 'dark');
+        return `<div class="card review-approval-card"><span class="badge ${badgeClass}">${RTApi.esc(visible)}</span><strong>${RTApi.esc(item.name || item.Name || '')}</strong><div class="stars">${Array(Math.max(1, Math.min(5, Number(item.rating || item.Rating || 5)))).fill('&#9733;').join('')}</div><p>${RTApi.esc(item.text || item.Text || '')}</p><div class="toolbar"><button class="btn success mini-btn" type="button" onclick="setReviewStatus(${Number(item.rowNumber || 0)}, 'Yes')">Approve</button><button class="btn secondary mini-btn" type="button" onclick="setReviewStatus(${Number(item.rowNumber || 0)}, 'Pending')">Pending</button><button class="btn danger mini-btn" type="button" onclick="setReviewStatus(${Number(item.rowNumber || 0)}, 'No')">Hide</button></div></div>`;
+      }).join('') || '<div class="empty">No customer reviews have been submitted yet.</div>';
     }
 
-    function editTestimonialAt(index){
-      const item = (adminData.testimonials || [])[index];
-      if(!item) return;
-      $('testName').value = item.Name || item.name || '';
-      $('testText').value = item.Text || item.text || '';
-      $('testRating').value = item.Rating || item.rating || 5;
-      $('testVisible').value = item.Visible || item.visible || 'Pending';
-      showPanel('testimonials');
-    }
-
-    function clearTestimonialForm(){ $('testName').value = ''; $('testText').value = ''; $('testRating').value = 5; $('testVisible').value = 'Pending'; }
-    async function saveTestimonial(){ await adminCall('saveTestimonial', { testimonial: { name: $('testName').value, text: $('testText').value, rating: $('testRating').value, visible: $('testVisible').value } }); toast('Testimonial saved'); clearTestimonialForm(); await refreshAll(); }
-    async function toggleTestimonial(index){
-      const item = (adminData.testimonials || [])[index];
-      if(!item) return;
-      await adminCall('saveTestimonial', { testimonial: { name: item.Name || item.name || '', text: item.Text || item.text || '', rating: item.Rating || item.rating || 5, visible: (item.Visible || item.visible || 'Pending') === 'Yes' ? 'No' : 'Yes' } });
-      toast('Testimonial updated');
+    async function setReviewStatus(rowNumber, visible){
+      if(!rowNumber){ toast('Review row not found'); return; }
+      await adminCall('updateTestimonialStatus', { rowNumber, visible });
+      toast('Review status updated');
       await refreshAll();
     }
 
@@ -570,9 +629,52 @@
     async function savePayments(){ await adminCall('savePaymentsConfig', { enabled: $('payEnabled').value, provider: $('payProvider').value, link: $('payLink').value, loginUrl: $('payLoginUrl').value, cashEnabled: $('payCashEnabled').value, cashInstructions: $('payCashInstructions').value, cashAppLink: $('payCashAppLink').value, zelleInstructions: $('payZelleInstructions').value, providerInstructions: $('payProviderInstructions').value, verificationMode: $('payVerificationMode').value, requirePaymentBeforeOrder: $('payRequireBeforeOrder').value, buttonLabel: $('payButtonLabel').value, redirectMessage: $('payRedirectMessage').value }); toast('Payments saved'); await refreshAll(); }
     function fillSettings(){ const c = adminData.config || {}; $('cfgName').value = c.name || ''; $('cfgPhone').value = c.phone || ''; $('cfgEmail').value = c.email || c.adminEmail || ''; $('cfgAddress').value = c.address || ''; $('cfgDeliveryEnabled').value = c.deliveryEnabled || 'Yes'; $('cfgPickupEnabled').value = c.pickupEnabled || 'Yes'; $('cfgFixedDeliveryFee').value = c.fixedDeliveryFee || c.deliveryFee || 4.99; $('cfgTaxRate').value = c.taxRate || 0.07; $('cfgInstagram').value = c.instagramUrl || ''; $('cfgHeroImage').value = c.heroImage || ''; $('cfgAboutText').value = c.aboutText || ''; $('cfgQrEnabled').value = c.qrEnabled || 'Yes'; $('cfgLicenseName').value = c.licenseName || window.RESTAURANT_SYSTEM.licenseName || ''; $('cfgLicenseBy').value = c.licenseBy || window.RESTAURANT_SYSTEM.licenseBy || ''; $('cfgPublicBaseUrl').value = c.publicBaseUrl || window.RESTAURANT_SYSTEM.publicBaseUrl || ''; $('cfgTrackingPage').value = c.trackingPage || window.RESTAURANT_SYSTEM.trackingPage || 'tracking.html'; $('cfgLocationUpdateSeconds').value = c.locationUpdateSeconds || 30; }
     async function saveSettings(){ await adminCall('saveRestaurantConfig', { config: { name: $('cfgName').value, phone: $('cfgPhone').value, email: $('cfgEmail').value, adminEmail: $('cfgEmail').value, address: $('cfgAddress').value, deliveryEnabled: $('cfgDeliveryEnabled').value, pickupEnabled: $('cfgPickupEnabled').value, fixedDeliveryFee: $('cfgFixedDeliveryFee').value, deliveryFee: $('cfgFixedDeliveryFee').value, taxRate: $('cfgTaxRate').value, instagramUrl: $('cfgInstagram').value, heroImage: $('cfgHeroImage').value, aboutText: $('cfgAboutText').value, qrEnabled: $('cfgQrEnabled').value, licenseName: $('cfgLicenseName').value, licenseBy: $('cfgLicenseBy').value, publicBaseUrl: $('cfgPublicBaseUrl').value, trackingPage: $('cfgTrackingPage').value, locationUpdateSeconds: $('cfgLocationUpdateSeconds').value, deliveryFeeMode: 'fixed' } }); toast('Settings saved'); await refreshAll(); }
-    function renderUsers(){ $('usersList').innerHTML = (adminData.users || []).map((user, index) => `<div class="card" style="padding:18px;"><strong>${RTApi.esc(user.name)}</strong><p class="section-sub">${RTApi.esc(user.email)} | ${RTApi.esc(user.role)} | active ${RTApi.esc(user.status || 'Yes')} | available ${RTApi.esc(user.available || 'Yes')} | failed attempts ${user.failedAttempts || 0}</p><div class="toolbar"><button class="btn secondary" type="button" onclick="editUserAt(${index})">Load / reset password</button><button class="btn dark" type="button" onclick="resetUserLock('${RTApi.esc(user.email)}')">Unlock</button></div></div>`).join('') || '<div class="empty">No users.</div>'; }
-    function editUserAt(index){ const user = (adminData.users || [])[index]; if(!user) return; $('userName').value = user.name || ''; $('userEmail').value = user.email || ''; $('userPassword').value = ''; $('userRole').value = user.role || 'staff'; $('userStatus').value = user.status || 'Yes'; $('userAvailable').value = user.available || 'Yes'; showPanel('users'); }
-    async function saveUser(){ const payload = { name: $('userName').value, email: $('userEmail').value, password: $('userPassword').value, role: $('userRole').value, status: $('userStatus').value, available: $('userAvailable').value }; await adminCall('saveUser', { user: payload }); toast('User saved'); await refreshAll(); }
+    function renderPermissionEditor(selected){
+      const grid = $('permissionGrid');
+      if(!grid) return;
+      const selectedList = selected || ['dashboard','orders','delivery','menu','promotions','testimonials','pickup'];
+      grid.innerHTML = ADMIN_SECTIONS.map(section => `<label class="permission-chip"><input type="checkbox" value="${section.key}" ${selectedList.indexOf(section.key) !== -1 ? 'checked' : ''} ${section.key === 'dashboard' ? 'disabled' : ''}><span>${RTApi.esc(section.label)}</span></label>`).join('');
+    }
+    function rolePermissionPreset(role){
+      const value = String(role || '').toLowerCase();
+      if(value === 'admin') return ADMIN_SECTIONS.map(section => section.key);
+      if(value === 'delivery') return ['dashboard','delivery','pickup'];
+      if(value === 'kitchen') return ['dashboard','orders','menu','pickup'];
+      return ['dashboard','orders','delivery','menu','promotions','testimonials','pickup'];
+    }
+    function applyRolePermissionPreset(){ renderPermissionEditor(rolePermissionPreset($('userRole').value)); }
+    function selectedUserPermissions(){
+      const values = Array.from(document.querySelectorAll('#permissionGrid input[type="checkbox"]')).filter(input => input.checked || input.value === 'dashboard').map(input => input.value);
+      return Array.from(new Set(values));
+    }
+    function clearUserPermissions(){ renderPermissionEditor(['dashboard']); }
+    function clearUserForm(){
+      ['userName','userEmail','userPassword'].forEach(id => $(id).value = '');
+      $('userRole').value = 'staff';
+      $('userStatus').value = 'Yes';
+      $('userAvailable').value = 'Yes';
+      renderPermissionEditor();
+    }
+    function renderUsers(){
+      $('usersList').innerHTML = (adminData.users || []).map((user, index) => {
+        const permissions = Array.isArray(user.permissions) ? user.permissions : String(user.functions || '').split(',').filter(Boolean);
+        const labels = permissions.map(key => (ADMIN_SECTIONS.find(section => section.key === key) || { label: key }).label);
+        return `<div class="card user-card"><strong>${RTApi.esc(user.name)}</strong><p class="section-sub">${RTApi.esc(user.email)} | ${RTApi.esc(user.role)} | active ${RTApi.esc(user.status || 'Yes')} | available ${RTApi.esc(user.available || 'Yes')} | failed attempts ${user.failedAttempts || 0}</p><div class="permission-tags">${labels.map(label => `<span class="badge dark">${RTApi.esc(label)}</span>`).join('')}</div><div class="toolbar"><button class="btn secondary" type="button" onclick="editUserAt(${index})">Edit permissions</button><button class="btn dark" type="button" onclick="resetUserLock('${RTApi.esc(user.email)}')">Unlock</button></div></div>`;
+      }).join('') || '<div class="empty">No users.</div>';
+    }
+    function editUserAt(index){
+      const user = (adminData.users || [])[index];
+      if(!user) return;
+      $('userName').value = user.name || '';
+      $('userEmail').value = user.email || '';
+      $('userPassword').value = '';
+      $('userRole').value = user.role || 'staff';
+      $('userStatus').value = user.status || 'Yes';
+      $('userAvailable').value = user.available || 'Yes';
+      renderPermissionEditor(Array.isArray(user.permissions) ? user.permissions : String(user.functions || '').split(',').filter(Boolean));
+      showPanel('users');
+    }
+    async function saveUser(){ const payload = { name: $('userName').value, email: $('userEmail').value, password: $('userPassword').value, role: $('userRole').value, status: $('userStatus').value, available: $('userAvailable').value, permissions: selectedUserPermissions() }; await adminCall('saveUser', { user: payload }); toast('User saved'); clearUserForm(); await refreshAll(); }
     async function resetUserLock(email){ await adminCall('resetUserLock', { email }); toast('User unlocked'); await refreshAll(); }
     function setQrStatus(message, isError){
       if($('qrCameraStatus')){
@@ -818,6 +920,10 @@
 
 
     if(sessionToken) bootstrap();
+    else {
+      renderPermissionEditor();
+      if(window.RTIntro) RTIntro.hide(260);
+    }
   </script>
 </body>
 </html>
