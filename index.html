@@ -365,7 +365,13 @@
     }
 
     function renderCats(){
-      $('catTabs').innerHTML = cats.map(category => `<button class="cat-chip ${category === cat ? 'active' : ''}" type="button" onclick="cat='${RTApi.esc(category)}'; renderCats(); renderMenu();">${RTApi.esc(category)}</button>`).join('');
+      $('catTabs').innerHTML = cats.map(category => `<button class="cat-chip ${category === cat ? 'active' : ''}" type="button" onclick="selectCategory('${RTApi.esc(encodeURIComponent(category))}')">${RTApi.esc(category)}</button>`).join('');
+    }
+
+    function selectCategory(encodedCategory){
+      cat = decodeURIComponent(encodedCategory || 'All');
+      renderCats();
+      renderMenu();
     }
 
     function renderMenu(){
@@ -387,17 +393,32 @@
       $('reviews').innerHTML = revs.map(review => `<div class="card testimonial"><div class="stars">${Array(Math.max(1, Math.min(5, Number(review.rating || 5)))).fill('&#9733;').join('')}</div><p>${RTApi.esc(review.text || '')}</p><strong>${RTApi.esc(review.name || '')}</strong></div>`).join('') || '<div class="empty">No approved reviews yet.</div>';
     }
 
+    function recommendationScore(baseItem, item){
+      const baseText = `${baseItem.name || ''} ${baseItem.category || ''}`.toLowerCase();
+      const itemText = `${item.name || ''} ${item.category || ''}`.toLowerCase();
+      const hasAny = (text, words) => words.some(word => text.includes(word));
+      let score = 0;
+      if(hasAny(baseText, ['burger', 'hamburger', 'sandwich', 'wrap'])){
+        if(hasAny(itemText, ['fries', 'soda', 'juice', 'drink', 'side'])) score += 5;
+      } else if(hasAny(baseText, ['taco', 'burrito', 'quesadilla'])){
+        if(hasAny(itemText, ['soda', 'juice', 'drink', 'chips', 'side'])) score += 5;
+      } else if(hasAny(baseText, ['pizza', 'pasta'])){
+        if(hasAny(itemText, ['soda', 'drink', 'dessert', 'cake', 'side'])) score += 5;
+      } else if(hasAny(baseText, ['drink', 'juice', 'soda'])){
+        if(hasAny(itemText, ['main', 'house', 'special', 'burger', 'plate'])) score += 4;
+      } else if(hasAny(itemText, ['drink', 'juice', 'soda', 'side', 'fries', 'dessert'])) {
+        score += 3;
+      }
+      if(String(item.category || '').toLowerCase() === String(baseItem.category || '').toLowerCase()) score += 1;
+      return score;
+    }
+
     function relatedItems(baseItem){
       if(!baseItem) return [];
-      const baseCategory = String(baseItem.category || '').toLowerCase();
-      const priorityWords = baseCategory.includes('drink') ? ['dessert', 'main'] : ['drink', 'side', 'dessert'];
       return items
         .filter(item => String(item.id) !== String(baseItem.id) && !cart[item.id])
-        .map(item => {
-          const category = String(item.category || '').toLowerCase();
-          const score = priorityWords.some(word => category.includes(word)) ? 2 : (category === baseCategory ? 1 : 0);
-          return Object.assign({ score }, item);
-        })
+        .map(item => Object.assign({ score: recommendationScore(baseItem, item) }, item))
+        .filter(item => item.score > 0)
         .sort((a, b) => b.score - a.score || Number(a.order || 9999) - Number(b.order || 9999))
         .slice(0, 3);
     }
@@ -495,9 +516,11 @@
 
     function rememberLastOrder(order){
       if(!order || !order.trackingURL) return;
+      const trackingToken = trackingTokenFromUrl(order.trackingURL);
       localStorage.setItem('rt_last_order', JSON.stringify({
         orderId: order.orderId || '',
         trackingURL: order.trackingURL,
+        trackingToken,
         status: order.status || '',
         type: order.orderType || '',
         customerPhone: order.customerPhone || '',
@@ -513,11 +536,38 @@
     }
 
     const noSavedOrderMessage = 'No recent order is saved on this device.';
+    const savedOrderMaxAgeMs = 1000 * 60 * 60 * 24 * 14;
 
     function setLastOrderMessage(message){
       const box = $('lastOrderBox');
       if(!box) return;
       box.textContent = message || noSavedOrderMessage;
+    }
+
+    function readSavedOrder(){
+      try {
+        const data = JSON.parse(localStorage.getItem('rt_last_order') || '{}');
+        if(!data || !data.orderId) return {};
+        const savedAt = data.savedAt ? new Date(data.savedAt).getTime() : 0;
+        if(savedAt && Date.now() - savedAt > savedOrderMaxAgeMs){
+          clearSavedOrder();
+          return {};
+        }
+        return data;
+      } catch(error) {
+        clearSavedOrder();
+        return {};
+      }
+    }
+
+    function savedTrackingToken(data){
+      return (data && data.trackingToken) || trackingTokenFromUrl((data && data.trackingURL) || '');
+    }
+
+    function renderLastOrderSummary(tracking, fallback){
+      const box = $('lastOrderBox');
+      if(!box) return;
+      box.innerHTML = `<strong>${RTApi.esc(tracking.orderId || fallback.orderId || 'Recent order')}</strong><br><span>Current status: ${RTApi.esc(tracking.status || fallback.status || 'Received')}</span><div class="toolbar" style="margin-top:12px;"><button class="btn" type="button" onclick="openSavedTracking()">View order status</button></div>`;
     }
 
     function clearSavedOrder(message){
@@ -529,15 +579,15 @@
       const box = $('lastOrderBox');
       if(!box) return;
       try {
-        const data = JSON.parse(localStorage.getItem('rt_last_order') || '{}');
-        const token = trackingTokenFromUrl(data.trackingURL || '');
+        const data = readSavedOrder();
+        const token = savedTrackingToken(data);
         if(!token){
           clearSavedOrder();
           return;
         }
         box.innerHTML = '<span class="loading-inline"></span> Checking your recent order...';
         const tracking = await RTApi.delivery('getTrackingInfo', { token });
-        box.innerHTML = `<strong>${RTApi.esc(tracking.orderId || data.orderId || 'Recent order')}</strong><br><span>Current status: ${RTApi.esc(tracking.status || data.status || 'Received')}</span><div class="toolbar" style="margin-top:12px;"><button class="btn" type="button" onclick="openSavedTracking()">View order status</button></div>`;
+        renderLastOrderSummary(tracking, data);
       } catch(error) {
         clearSavedOrder('No recent orders are available on this device.');
       }
@@ -545,8 +595,8 @@
 
     async function openSavedTracking(){
       try {
-        const data = JSON.parse(localStorage.getItem('rt_last_order') || '{}');
-        const token = trackingTokenFromUrl(data.trackingURL || '');
+        const data = readSavedOrder();
+        const token = savedTrackingToken(data);
         if(!token){
           clearSavedOrder();
           toast('No recent order is saved on this device');
@@ -586,10 +636,18 @@
     }
 
     async function loadInlineTracking(request){
-      const result = request.token
-        ? await RTApi.delivery('getTrackingInfo', { token: request.token })
-        : await RTApi.delivery('lookupTrackingByOrder', { orderId: request.orderId, contact: request.contact });
-      renderInlineTracking(result);
+      try {
+        const result = request.token
+          ? await RTApi.delivery('getTrackingInfo', { token: request.token })
+          : await RTApi.delivery('lookupTrackingByOrder', { orderId: request.orderId, contact: request.contact });
+        renderInlineTracking(result);
+      } catch(error) {
+        const saved = readSavedOrder();
+        if(request.token && request.token === savedTrackingToken(saved)) clearSavedOrder('No recent orders are available on this device.');
+        const target = $('inlineTrackingResult');
+        if(target) target.innerHTML = `<div class="empty">We could not find that order. Use the Order ID and phone or email from your receipt.</div>`;
+        throw error;
+      }
     }
 
     function renderInlineTracking(data){
@@ -604,7 +662,8 @@
       const feeLine = isPickup ? '<div class="total-line"><span>Pickup</span><strong class="free-label">Free</strong></div>' : `<div class="total-line"><span>Delivery fee</span><strong>${RTApi.money(data.deliveryFee)}</strong></div>`;
       const query = data.delivery && data.delivery.lat && data.delivery.lng ? data.delivery.lat + ',' + data.delivery.lng : (data.destinationAddress || data.restaurantAddress || cfg.businessName || '');
       target.innerHTML = `<div class="tracking-status embedded-tracking"><section class="card" style="padding:24px;"><span class="badge green">${RTApi.esc(data.status || 'Pending')}</span><h2>Order ${RTApi.esc(data.orderId || '')}</h2><p class="section-sub">${RTApi.esc(data.message || '')}</p><div class="timeline">${timeline}</div><div class="info-list" style="margin-top:16px;"><div class="info-row"><span>Type</span><strong>${RTApi.esc(data.orderType || '')}</strong></div><div class="info-row"><span>Payment</span><strong>${RTApi.esc(data.paymentStatus || '')}</strong></div><div class="info-row"><span>${addressLabel}</span><strong>${RTApi.esc(data.destinationAddress || data.restaurantAddress || '')}</strong></div><div class="info-row"><span>Last update</span><strong>${RTApi.esc(data.lastUpdate || '')}</strong></div></div><h3>Items</h3><div class="info-list">${items}</div><div class="totals"><div class="total-line"><span>Subtotal</span><strong>${RTApi.money(data.subtotal)}</strong></div><div class="total-line"><span>Discount</span><strong>-${RTApi.money(data.discount)}</strong></div><div class="total-line"><span>Tax</span><strong>${RTApi.money(data.tax)}</strong></div>${feeLine}<div class="total-line"><span>Tip</span><strong>${RTApi.money(data.tip)}</strong></div><div class="total-line grand"><span>Total</span><strong>${RTApi.money(data.total)}</strong></div></div></section><section class="card" style="padding:24px;"><h2 style="margin-top:0;">${isPickup ? 'Pickup location' : 'Order map'}</h2><iframe class="tracking-map" loading="lazy" src="https://maps.google.com/maps?q=${encodeURIComponent(query)}&z=15&output=embed"></iframe><p class="section-sub">${isPickup ? 'Show your pickup QR/token at the counter.' : 'The map shows the destination until driver GPS is active.'}</p></section></div>`;
-      renderLastOrderBox();
+      const saved = readSavedOrder();
+      if(saved.orderId && String(saved.orderId) === String(data.orderId || '')) renderLastOrderSummary(data, saved);
       target.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
@@ -615,7 +674,7 @@
       if(!name){ toast('Name is required'); return; }
       if(text.length < 8){ toast('Review must be at least 8 characters'); return; }
       $('reviewBtn').disabled = true;
-      $('reviewBtn').textContent = 'Sending your review...';
+      $('reviewBtn').textContent = 'Sharing your review...';
       try {
         const result = await RTApi.client('submitReview', { name, text, rating, userAgent: navigator.userAgent });
         $('reviewName').value = '';
