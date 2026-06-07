@@ -14,9 +14,18 @@
   <link rel="stylesheet" href="assets/restaurant.css">
   <script src="assets/config.js"></script>
   <script src="assets/pwa.js" defer></script>
+  <script src="assets/app-intro.js"></script>
   <script src="assets/i18n.js" defer></script>
 </head>
 <body>
+  <div id="appIntro" class="app-intro" data-auto-hide="true" data-auto-hide-delay="750" role="status" aria-live="polite">
+    <div class="intro-card">
+      <div class="intro-brand"><span class="intro-mark">RF</span><span><strong>Restaurant/Food Truck Example</strong><small>Delivery tools</small></span></div>
+      <div class="intro-main"><div class="intro-plate"></div><h2>Preparing delivery tools</h2><p>Opening the route, GPS, and order handoff experience.</p></div>
+      <div class="intro-status"><span id="appIntroStep">Preparing delivery access...</span><div class="intro-dots"><i></i><i></i><i></i></div></div>
+    </div>
+  </div>
+
   <section class="bridge-screen">
     <div class="bridge-box">
       <div class="brand" style="color:var(--ink); margin-bottom:18px;">
