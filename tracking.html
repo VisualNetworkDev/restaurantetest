@@ -14,9 +14,18 @@
   <link rel="stylesheet" href="assets/restaurant.css">
   <script src="assets/config.js"></script>
   <script src="assets/pwa.js" defer></script>
+  <script src="assets/app-intro.js"></script>
   <script src="assets/i18n.js" defer></script>
 </head>
 <body>
+  <div id="appIntro" class="app-intro" data-auto-hide="false" data-timeout="18000" role="status" aria-live="polite">
+    <div class="intro-card">
+      <div class="intro-brand"><span class="intro-mark">RF</span><span><strong>Restaurant/Food Truck Example</strong><small>Order tracking</small></span></div>
+      <div class="intro-main"><div class="intro-plate"></div><h2>Finding your order</h2><p>Loading status, receipt details, and pickup or delivery information.</p></div>
+      <div class="intro-status"><span id="appIntroStep">Checking your secure order link...</span><div class="intro-dots"><i></i><i></i><i></i></div></div>
+    </div>
+  </div>
+
   <div class="topbar">
     <div class="container nav">
       <a class="brand" href="index.html"><span class="brand-mark">RF</span><span><span id="brandName">Restaurant/Food Truck Example</span><small>Order tracking</small></span></a>
@@ -141,9 +150,11 @@
     }
 
     async function loadTracking(){
-      if(!token){ renderTrackingMessage('Invalid tracking link', 'This page requires a secure tracking or pickup token.'); return; }
+      if(window.RTIntro) RTIntro.setStep('Loading order status...');
+      if(!token){ renderTrackingMessage('Invalid tracking link', 'This page requires a secure tracking or pickup token.'); if(window.RTIntro) RTIntro.hide(220); return; }
       try { const data = await RTApi.delivery('getTrackingInfo', { token }); render(data); }
       catch(error) { renderTrackingMessage('Tracking unavailable', error.message || String(error)); toast(error.message || String(error)); }
+      finally { if(window.RTIntro) RTIntro.hide(220); }
     }
 
     loadTracking();
