@@ -1,16 +1,9 @@
-const CACHE_VERSION = 'rf-example-pwa-v2';
-const APP_SHELL = [
-  './',
-  './index.html',
-  './admin.html',
-  './delivery.html',
-  './tracking.html',
+const CACHE_VERSION = 'rf-example-pwa-v4';
+const CORE_ASSETS = [
   './offline.html',
   './assets/config.js',
   './assets/restaurant.css',
   './assets/pwa.js',
-  './manifest-client.webmanifest',
-  './manifest-management.webmanifest',
   './assets/icons/icon-192.png',
   './assets/icons/icon-512.png',
   './assets/icons/maskable-512.png'
@@ -19,7 +12,7 @@ const APP_SHELL = [
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_VERSION)
-      .then(cache => cache.addAll(APP_SHELL))
+      .then(cache => cache.addAll(CORE_ASSETS))
       .then(() => self.skipWaiting())
   );
 });
