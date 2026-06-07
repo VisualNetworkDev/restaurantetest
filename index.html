@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -25,10 +25,10 @@
       <nav class="navlinks" aria-label="Main menu">
         <button class="active" type="button" data-section="menu" onclick="showClientSection('menu', this)">Menu</button>
         <button type="button" data-section="offers" onclick="showClientSection('offers', this)">Offers</button>
+        <button type="button" data-section="track" onclick="showClientSection('track', this)">My order</button>
         <button type="button" data-section="about" onclick="showClientSection('about', this)">About</button>
         <button type="button" data-section="reviews" onclick="showClientSection('reviews', this)">Reviews</button>
         <button type="button" data-section="contact" onclick="showClientSection('contact', this)">Contact</button>
-        <a id="trackLastBtn" class="nav-track" href="#" target="_blank" style="display:none;">Track last order</a>
         <button class="btn secondary" type="button" data-install-app onclick="RTPWA.install()" style="display:none;">Install</button>
         <button class="btn secondary" type="button" onclick="openCart()">Cart <span id="cartCount">0</span></button>
       </nav>
@@ -80,6 +80,31 @@
         </div>
       </div>
       <div id="offers" class="grid grid-3"></div>
+    </section>
+
+    <section id="client-track" class="client-section section">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">Revisa por dónde va tu pedido</h2>
+          <p class="section-sub">Consulta el estado sin salir de esta página. Si estás en otro dispositivo, usa el Order ID del recibo junto con tu teléfono o email.</p>
+        </div>
+      </div>
+      <div class="track-portal">
+        <div class="card track-card">
+          <span class="badge green">Último pedido</span>
+          <div id="lastOrderBox" class="section-sub" style="margin-top:12px;">No hay un pedido guardado en este dispositivo todavía.</div>
+        </div>
+        <div class="card track-card">
+          <span class="badge dark">Buscar pedido</span>
+          <div class="split" style="margin-top:12px;">
+            <label class="field"><span>Order ID</span><input id="lookupOrderId" placeholder="Example: RT-20260607-ABCDE"></label>
+            <label class="field"><span>Phone or email</span><input id="lookupContact" placeholder="Phone or email from receipt"></label>
+          </div>
+          <button id="lookupBtn" class="btn" type="button" onclick="lookupOrderTracking()">Check order</button>
+          <p class="section-sub">This keeps order details private while still making it easy to reopen your status.</p>
+        </div>
+      </div>
+      <div id="inlineTrackingResult" class="inline-tracking-result"></div>
     </section>
 
     <section id="client-about" class="client-section section">
@@ -264,7 +289,7 @@
         renderReviews();
         toggleDeliveryFields();
         renderCart();
-        showLastOrderLink();
+        renderLastOrderBox();
         loadSecondaryContent();
       } catch(error) {
         toast(error.message || String(error));
@@ -462,26 +487,85 @@
         trackingURL: order.trackingURL,
         status: order.status || '',
         type: order.orderType || '',
+        customerPhone: order.customerPhone || '',
+        customerEmail: order.customerEmail || '',
         savedAt: new Date().toISOString()
       }));
-      showLastOrderLink();
+      renderLastOrderBox();
     }
 
-    function showLastOrderLink(){
-      const link = $('trackLastBtn');
-      if(!link) return;
+    function trackingTokenFromUrl(url){
+      try { return new URL(url, location.href).searchParams.get('token') || ''; }
+      catch(error) { return ''; }
+    }
+
+    function renderLastOrderBox(){
+      const box = $('lastOrderBox');
+      if(!box) return;
       try {
         const data = JSON.parse(localStorage.getItem('rt_last_order') || '{}');
         if(data.trackingURL){
-          link.href = data.trackingURL;
-          link.textContent = data.orderId ? 'Track ' + data.orderId : 'Track last order';
-          link.style.display = '';
+          box.innerHTML = `<strong>${RTApi.esc(data.orderId || 'Recent order')}</strong><br><span>Current saved status: ${RTApi.esc(data.status || 'Received')}</span><div class="toolbar" style="margin-top:12px;"><button class="btn" type="button" onclick="openSavedTracking()">View order status</button></div>`;
         } else {
-          link.style.display = 'none';
+          box.textContent = 'No hay un pedido guardado en este dispositivo todavía.';
         }
       } catch(error) {
-        link.style.display = 'none';
+        box.textContent = 'No hay un pedido guardado en este dispositivo todavía.';
       }
+    }
+
+    async function openSavedTracking(){
+      const data = JSON.parse(localStorage.getItem('rt_last_order') || '{}');
+      const token = trackingTokenFromUrl(data.trackingURL || '');
+      if(!token){ toast('Tracking details are not saved on this device'); return; }
+      showClientSection('track');
+      await loadInlineTracking({ token });
+    }
+
+    async function openEmbeddedTracking(url){
+      const token = trackingTokenFromUrl(url || '');
+      if(!token){ toast('Tracking details are not available yet'); return; }
+      $('receiptModal').classList.remove('open');
+      showClientSection('track');
+      await loadInlineTracking({ token });
+    }
+
+    async function lookupOrderTracking(){
+      const orderId = $('lookupOrderId').value.trim();
+      const contact = $('lookupContact').value.trim();
+      if(!orderId){ toast('Order ID is required'); return; }
+      if(!contact){ toast('Phone or email is required'); return; }
+      $('lookupBtn').disabled = true;
+      $('lookupBtn').textContent = 'Checking...';
+      try { await loadInlineTracking({ orderId, contact }); }
+      catch(error) { toast(error.message || String(error)); }
+      finally {
+        $('lookupBtn').disabled = false;
+        $('lookupBtn').textContent = 'Check order';
+      }
+    }
+
+    async function loadInlineTracking(request){
+      const result = request.token
+        ? await RTApi.delivery('getTrackingInfo', { token: request.token })
+        : await RTApi.delivery('lookupTrackingByOrder', { orderId: request.orderId, contact: request.contact });
+      renderInlineTracking(result);
+    }
+
+    function renderInlineTracking(data){
+      const target = $('inlineTrackingResult');
+      if(!target || !data) return;
+      const isPickup = String(data.orderType || '').toLowerCase() === 'pickup';
+      const steps = isPickup ? ['Pending','Confirmed','Preparing','Ready for pickup','Picked up'] : ['Pending','Confirmed','Preparing','Ready for delivery','On the way','Delivered'];
+      const current = Math.max(0, steps.indexOf(data.status || 'Pending'));
+      const timeline = steps.map((step, index) => `<div class="timeline-step ${index <= current ? 'done' : ''}"><span class="timeline-dot"></span><span>${RTApi.esc(step)}</span></div>`).join('');
+      const items = (data.items || []).map(item => `<div class="info-row"><span>${RTApi.esc(item.quantity || 1)}x ${RTApi.esc(item.name || '')}</span><strong>${RTApi.money(item.lineTotal || 0)}</strong></div>`).join('') || '<p class="section-sub">No items available.</p>';
+      const addressLabel = isPickup ? 'Pickup address' : 'Delivery address';
+      const feeLine = isPickup ? '<div class="total-line"><span>Pickup</span><strong class="free-label">Free</strong></div>' : `<div class="total-line"><span>Delivery fee</span><strong>${RTApi.money(data.deliveryFee)}</strong></div>`;
+      const query = data.delivery && data.delivery.lat && data.delivery.lng ? data.delivery.lat + ',' + data.delivery.lng : (data.destinationAddress || data.restaurantAddress || cfg.businessName || '');
+      target.innerHTML = `<div class="tracking-status embedded-tracking"><section class="card" style="padding:24px;"><span class="badge green">${RTApi.esc(data.status || 'Pending')}</span><h2>Order ${RTApi.esc(data.orderId || '')}</h2><p class="section-sub">${RTApi.esc(data.message || '')}</p><div class="timeline">${timeline}</div><div class="info-list" style="margin-top:16px;"><div class="info-row"><span>Type</span><strong>${RTApi.esc(data.orderType || '')}</strong></div><div class="info-row"><span>Payment</span><strong>${RTApi.esc(data.paymentStatus || '')}</strong></div><div class="info-row"><span>${addressLabel}</span><strong>${RTApi.esc(data.destinationAddress || data.restaurantAddress || '')}</strong></div><div class="info-row"><span>Last update</span><strong>${RTApi.esc(data.lastUpdate || '')}</strong></div></div><h3>Items</h3><div class="info-list">${items}</div><div class="totals"><div class="total-line"><span>Subtotal</span><strong>${RTApi.money(data.subtotal)}</strong></div><div class="total-line"><span>Discount</span><strong>-${RTApi.money(data.discount)}</strong></div><div class="total-line"><span>Tax</span><strong>${RTApi.money(data.tax)}</strong></div>${feeLine}<div class="total-line"><span>Tip</span><strong>${RTApi.money(data.tip)}</strong></div><div class="total-line grand"><span>Total</span><strong>${RTApi.money(data.total)}</strong></div></div></section><section class="card" style="padding:24px;"><h2 style="margin-top:0;">${isPickup ? 'Pickup location' : 'Order map'}</h2><iframe class="tracking-map" loading="lazy" src="https://maps.google.com/maps?q=${encodeURIComponent(query)}&z=15&output=embed"></iframe><p class="section-sub">${isPickup ? 'Show your pickup QR/token at the counter.' : 'The map shows the destination until driver GPS is active.'}</p></section></div>`;
+      renderLastOrderBox();
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     async function submitReview(){
@@ -559,7 +643,7 @@
       const feeValue = Number(order.deliveryFee || 0) > 0 ? RTApi.money(order.deliveryFee) : '<span class="free-label">Free</span>';
       const paymentNote = isCash ? 'Cash payment is due in person.' : 'Payment status: ' + RTApi.esc(order.paymentStatus || 'Payment pending');
       const deliveryQR = order.deliveryQRUrl ? `<div class="qr-box"><h3>Delivery confirmation QR</h3><img src="${RTApi.esc(order.deliveryQRUrl)}" width="180" height="180" alt="Delivery QR"><p class="section-sub">If you meet the driver outside, they can scan this to confirm delivery.</p></div>` : '';
-      const trackingLink = order.trackingURL ? `<a class="btn dark" target="_blank" href="${RTApi.esc(order.trackingURL)}">Track order anytime</a>` : '';
+      const trackingLink = order.trackingURL ? `<button class="btn dark" type="button" onclick="openEmbeddedTracking('${RTApi.esc(order.trackingURL)}')">Revisa por dónde va tu pedido</button>` : '';
       $('receipt').innerHTML = `<div class="receipt"><div class="receipt-head"><span class="pill">${RTApi.esc(order.status)}</span><h2>Order received</h2><p>Order ID: ${RTApi.esc(order.orderId)}</p><p>${paymentNote}</p></div><div class="receipt-body">${rows}<div class="totals"><div class="total-line"><span>Subtotal</span><strong>${RTApi.money(order.subtotal)}</strong></div><div class="total-line"><span>Discount</span><strong>-${RTApi.money(order.discount)}</strong></div><div class="total-line"><span>Tax</span><strong>${RTApi.money(order.tax)}</strong></div><div class="total-line"><span>${isPickup ? 'Pickup' : 'Delivery fee'}</span><strong>${isPickup ? '<span class="free-label">Free</span>' : feeValue}</strong></div><div class="total-line"><span>Tip</span><strong>${RTApi.money(order.tip)}</strong></div><div class="total-line grand"><span>Total</span><strong>${RTApi.money(order.total)}</strong></div></div>${order.pickupQRUrl ? `<div class="qr-box"><h3>Pickup QR</h3><img src="${RTApi.esc(order.pickupQRUrl)}" width="180" height="180" alt="Pickup QR"><p class="section-sub">Show this QR/token at pickup. Token: ${RTApi.esc(order.pickupToken)}</p></div>` : ''}${deliveryQR}${trackingLink}</div></div>`;
       $('payBtn').style.display = payments.enabled === 'Yes' && payments.link && !isCash ? '' : 'none';
       $('payBtn').textContent = payments.buttonLabel || 'Pay Securely';
