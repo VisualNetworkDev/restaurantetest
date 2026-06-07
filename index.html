@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="assets/restaurant.css">
   <script src="assets/config.js"></script>
   <script src="assets/pwa.js" defer></script>
+  <script src="assets/i18n.js" defer></script>
 </head>
 <body>
   <header class="topbar">
@@ -85,17 +86,17 @@
     <section id="client-track" class="client-section section">
       <div class="section-head">
         <div>
-          <h2 class="section-title">Revisa por dónde va tu pedido</h2>
-          <p class="section-sub">Consulta el estado sin salir de esta página. Si estás en otro dispositivo, usa el Order ID del recibo junto con tu teléfono o email.</p>
+          <h2 class="section-title">Check where your order is</h2>
+          <p class="section-sub">Check the status without leaving this page. If you are on another device, use the Order ID from the receipt with your phone or email.</p>
         </div>
       </div>
       <div class="track-portal">
         <div class="card track-card">
-          <span class="badge green">Último pedido</span>
-          <div id="lastOrderBox" class="section-sub" style="margin-top:12px;">No hay un pedido reciente guardado en este dispositivo.</div>
+          <span class="badge green">Last order</span>
+          <div id="lastOrderBox" class="section-sub" style="margin-top:12px;">No recent order is saved on this device.</div>
         </div>
         <div class="card track-card">
-          <span class="badge dark">Buscar pedido</span>
+          <span class="badge dark">Search order</span>
           <div class="split" style="margin-top:12px;">
             <label class="field"><span>Order ID</span><input id="lookupOrderId" placeholder="Example: RT-20260607-ABCDE"></label>
             <label class="field"><span>Phone or email</span><input id="lookupContact" placeholder="Phone or email from receipt"></label>
@@ -499,7 +500,7 @@
       catch(error) { return ''; }
     }
 
-    const noSavedOrderMessage = 'No hay un pedido reciente guardado en este dispositivo.';
+    const noSavedOrderMessage = 'No recent order is saved on this device.';
 
     function setLastOrderMessage(message){
       const box = $('lastOrderBox');
@@ -524,9 +525,9 @@
         }
         box.innerHTML = '<span class="loading-inline"></span> Checking your recent order...';
         const tracking = await RTApi.delivery('getTrackingInfo', { token });
-        box.innerHTML = `<strong>${RTApi.esc(tracking.orderId || data.orderId || 'Recent order')}</strong><br><span>Estado actual: ${RTApi.esc(tracking.status || data.status || 'Received')}</span><div class="toolbar" style="margin-top:12px;"><button class="btn" type="button" onclick="openSavedTracking()">Ver estado del pedido</button></div>`;
+        box.innerHTML = `<strong>${RTApi.esc(tracking.orderId || data.orderId || 'Recent order')}</strong><br><span>Current status: ${RTApi.esc(tracking.status || data.status || 'Received')}</span><div class="toolbar" style="margin-top:12px;"><button class="btn" type="button" onclick="openSavedTracking()">View order status</button></div>`;
       } catch(error) {
-        clearSavedOrder('No hay pedidos recientes disponibles en este dispositivo.');
+        clearSavedOrder('No recent orders are available on this device.');
       }
     }
 
@@ -542,10 +543,10 @@
         showClientSection('track');
         await loadInlineTracking({ token });
       } catch(error) {
-        clearSavedOrder('Ese pedido ya no esta disponible en este dispositivo.');
+        clearSavedOrder('That order is no longer available on this device.');
         const target = $('inlineTrackingResult');
         if(target) target.innerHTML = '';
-        toast('Ese pedido ya no esta disponible. Usa el Order ID del recibo para buscarlo.');
+        toast('That order is no longer available. Use the Order ID from the receipt to search for it.');
       }
     }
 
@@ -670,7 +671,7 @@
       const feeValue = Number(order.deliveryFee || 0) > 0 ? RTApi.money(order.deliveryFee) : '<span class="free-label">Free</span>';
       const paymentNote = isCash ? 'Cash payment is due in person.' : 'Payment status: ' + RTApi.esc(order.paymentStatus || 'Payment pending');
       const deliveryQR = order.deliveryQRUrl ? `<div class="qr-box"><h3>Delivery confirmation QR</h3><img src="${RTApi.esc(order.deliveryQRUrl)}" width="180" height="180" alt="Delivery QR"><p class="section-sub">If you meet the driver outside, they can scan this to confirm delivery.</p></div>` : '';
-      const trackingLink = order.trackingURL ? `<button class="btn dark" type="button" onclick="openEmbeddedTracking('${RTApi.esc(order.trackingURL)}')">Revisa por dónde va tu pedido</button>` : '';
+      const trackingLink = order.trackingURL ? `<button class="btn dark" type="button" onclick="openEmbeddedTracking('${RTApi.esc(order.trackingURL)}')">Check where your order is</button>` : '';
       $('receipt').innerHTML = `<div class="receipt"><div class="receipt-head"><span class="pill">${RTApi.esc(order.status)}</span><h2>Order received</h2><p>Order ID: ${RTApi.esc(order.orderId)}</p><p>${paymentNote}</p></div><div class="receipt-body">${rows}<div class="totals"><div class="total-line"><span>Subtotal</span><strong>${RTApi.money(order.subtotal)}</strong></div><div class="total-line"><span>Discount</span><strong>-${RTApi.money(order.discount)}</strong></div><div class="total-line"><span>Tax</span><strong>${RTApi.money(order.tax)}</strong></div><div class="total-line"><span>${isPickup ? 'Pickup' : 'Delivery fee'}</span><strong>${isPickup ? '<span class="free-label">Free</span>' : feeValue}</strong></div><div class="total-line"><span>Tip</span><strong>${RTApi.money(order.tip)}</strong></div><div class="total-line grand"><span>Total</span><strong>${RTApi.money(order.total)}</strong></div></div>${order.pickupQRUrl ? `<div class="qr-box"><h3>Pickup QR</h3><img src="${RTApi.esc(order.pickupQRUrl)}" width="180" height="180" alt="Pickup QR"><p class="section-sub">Show this QR/token at pickup. Token: ${RTApi.esc(order.pickupToken)}</p></div>` : ''}${deliveryQR}${trackingLink}</div></div>`;
       $('payBtn').style.display = payments.enabled === 'Yes' && payments.link && !isCash ? '' : 'none';
       $('payBtn').textContent = payments.buttonLabel || 'Pay Securely';
