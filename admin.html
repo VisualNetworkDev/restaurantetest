@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -13,6 +13,7 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23251712'/%3E%3Ctext x='32' y='42' font-size='34' text-anchor='middle'%3E%F0%9F%8D%BD%EF%B8%8F%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="assets/restaurant.css">
   <script src="assets/config.js"></script>
+  <script src="assets/jsQR.js"></script>
   <script src="assets/pwa.js" defer></script>
 </head>
 <body class="admin-body">
@@ -179,6 +180,7 @@
           <label class="field"><span>Instagram URL</span><input id="cfgInstagram"></label>
           <label class="field"><span>Hero image URL</span><input id="cfgHeroImage"></label>
           <label class="field"><span>About text</span><textarea id="cfgAboutText"></textarea></label>
+          <label class="field"><span>Order QR enabled</span><select id="cfgQrEnabled"><option>Yes</option><option>No</option></select></label>
           <div class="readonly-info">
             <span class="badge dark">Website license</span>
             <p class="section-sub">This identifies the website package and the public pages used by the customer. Keep it read-only unless the site is redeployed to a new public URL.</p>
@@ -208,7 +210,7 @@
           <div class="qr-scan-grid">
             <div>
               <video id="qrVideo" class="qr-video" playsinline muted></video>
-              <p id="qrCameraStatus" class="section-sub">Camera scanning works on HTTPS pages. If the browser blocks the camera, paste the token or upload a QR photo.</p>
+              <p id="qrCameraStatus" class="section-sub">Open the camera here and point it at the pickup or delivery QR. The order will be verified inside this panel.</p>
               <div class="toolbar"><button class="btn" type="button" onclick="startQrCamera()">Start camera</button><button class="btn secondary" type="button" onclick="stopQrCamera()">Stop camera</button></div>
             </div>
             <div>
@@ -216,7 +218,7 @@
               <label class="field"><span>Scan QR photo</span><input id="qrImageInput" type="file" accept="image/*" capture="environment" onchange="scanQrImage(this.files && this.files[0])"></label>
               <label class="field"><span>Delivery note</span><textarea id="deliveryProofNote" placeholder="Example: Left at front door / Handed to customer."></textarea></label>
               <label class="field"><span>Optional delivery photo</span><input id="deliveryProofPhoto" type="file" accept="image/*"></label>
-              <div class="toolbar"><button class="btn" type="button" onclick="verifyPickup()">Verify order</button><button class="btn success" type="button" onclick="completePickup()">Complete scanned order</button></div>
+              <div class="toolbar"><button class="btn" type="button" onclick="verifyPickup()">Verify order</button><button id="completeScannedOrderBtn" class="btn success" type="button" onclick="completePickup()">Complete scanned order</button></div>
             </div>
           </div>
           <div id="pickupResult" style="margin-top:14px;"></div>
@@ -241,6 +243,8 @@
     let qrStream = null;
     let qrScanTimer = null;
     let qrDetector = null;
+    let qrCanvas = null;
+    let qrCanvasContext = null;
 
     function $(id){ return document.getElementById(id); }
     function toast(message){ const box = $('toast'); box.textContent = message; box.classList.add('show'); setTimeout(() => box.classList.remove('show'), 2600); }
@@ -563,8 +567,8 @@
 
     function fillPayments(){ const p = adminData.payments || {}; $('payEnabled').value = p.enabled || 'No'; $('payProvider').value = p.provider || ''; $('payLink').value = p.link || ''; $('payLoginUrl').value = p.loginUrl || ''; $('payCashEnabled').value = p.cashEnabled || 'Yes'; $('payCashInstructions').value = p.cashInstructions || 'Pay in person at pickup or delivery.'; $('payCashAppLink').value = p.cashAppLink || ''; $('payZelleInstructions').value = p.zelleInstructions || ''; $('payProviderInstructions').value = p.providerInstructions || ''; $('payVerificationMode').value = p.verificationMode || 'Manual'; $('payRequireBeforeOrder').value = p.requirePaymentBeforeOrder || 'No'; $('payButtonLabel').value = p.buttonLabel || 'Pay Securely'; $('payRedirectMessage').value = p.redirectMessage || 'You are being redirected to the restaurant secure payment page.'; }
     async function savePayments(){ await adminCall('savePaymentsConfig', { enabled: $('payEnabled').value, provider: $('payProvider').value, link: $('payLink').value, loginUrl: $('payLoginUrl').value, cashEnabled: $('payCashEnabled').value, cashInstructions: $('payCashInstructions').value, cashAppLink: $('payCashAppLink').value, zelleInstructions: $('payZelleInstructions').value, providerInstructions: $('payProviderInstructions').value, verificationMode: $('payVerificationMode').value, requirePaymentBeforeOrder: $('payRequireBeforeOrder').value, buttonLabel: $('payButtonLabel').value, redirectMessage: $('payRedirectMessage').value }); toast('Payments saved'); await refreshAll(); }
-    function fillSettings(){ const c = adminData.config || {}; $('cfgName').value = c.name || ''; $('cfgPhone').value = c.phone || ''; $('cfgEmail').value = c.email || c.adminEmail || ''; $('cfgAddress').value = c.address || ''; $('cfgDeliveryEnabled').value = c.deliveryEnabled || 'Yes'; $('cfgPickupEnabled').value = c.pickupEnabled || 'Yes'; $('cfgFixedDeliveryFee').value = c.fixedDeliveryFee || c.deliveryFee || 4.99; $('cfgTaxRate').value = c.taxRate || 0.07; $('cfgInstagram').value = c.instagramUrl || ''; $('cfgHeroImage').value = c.heroImage || ''; $('cfgAboutText').value = c.aboutText || ''; $('cfgLicenseName').value = c.licenseName || window.RESTAURANT_SYSTEM.licenseName || ''; $('cfgLicenseBy').value = c.licenseBy || window.RESTAURANT_SYSTEM.licenseBy || ''; $('cfgPublicBaseUrl').value = c.publicBaseUrl || window.RESTAURANT_SYSTEM.publicBaseUrl || ''; $('cfgTrackingPage').value = c.trackingPage || window.RESTAURANT_SYSTEM.trackingPage || 'tracking.html'; $('cfgLocationUpdateSeconds').value = c.locationUpdateSeconds || 30; }
-    async function saveSettings(){ await adminCall('saveRestaurantConfig', { config: { name: $('cfgName').value, phone: $('cfgPhone').value, email: $('cfgEmail').value, adminEmail: $('cfgEmail').value, address: $('cfgAddress').value, deliveryEnabled: $('cfgDeliveryEnabled').value, pickupEnabled: $('cfgPickupEnabled').value, fixedDeliveryFee: $('cfgFixedDeliveryFee').value, deliveryFee: $('cfgFixedDeliveryFee').value, taxRate: $('cfgTaxRate').value, instagramUrl: $('cfgInstagram').value, heroImage: $('cfgHeroImage').value, aboutText: $('cfgAboutText').value, licenseName: $('cfgLicenseName').value, licenseBy: $('cfgLicenseBy').value, publicBaseUrl: $('cfgPublicBaseUrl').value, trackingPage: $('cfgTrackingPage').value, locationUpdateSeconds: $('cfgLocationUpdateSeconds').value, deliveryFeeMode: 'fixed' } }); toast('Settings saved'); await refreshAll(); }
+    function fillSettings(){ const c = adminData.config || {}; $('cfgName').value = c.name || ''; $('cfgPhone').value = c.phone || ''; $('cfgEmail').value = c.email || c.adminEmail || ''; $('cfgAddress').value = c.address || ''; $('cfgDeliveryEnabled').value = c.deliveryEnabled || 'Yes'; $('cfgPickupEnabled').value = c.pickupEnabled || 'Yes'; $('cfgFixedDeliveryFee').value = c.fixedDeliveryFee || c.deliveryFee || 4.99; $('cfgTaxRate').value = c.taxRate || 0.07; $('cfgInstagram').value = c.instagramUrl || ''; $('cfgHeroImage').value = c.heroImage || ''; $('cfgAboutText').value = c.aboutText || ''; $('cfgQrEnabled').value = c.qrEnabled || 'Yes'; $('cfgLicenseName').value = c.licenseName || window.RESTAURANT_SYSTEM.licenseName || ''; $('cfgLicenseBy').value = c.licenseBy || window.RESTAURANT_SYSTEM.licenseBy || ''; $('cfgPublicBaseUrl').value = c.publicBaseUrl || window.RESTAURANT_SYSTEM.publicBaseUrl || ''; $('cfgTrackingPage').value = c.trackingPage || window.RESTAURANT_SYSTEM.trackingPage || 'tracking.html'; $('cfgLocationUpdateSeconds').value = c.locationUpdateSeconds || 30; }
+    async function saveSettings(){ await adminCall('saveRestaurantConfig', { config: { name: $('cfgName').value, phone: $('cfgPhone').value, email: $('cfgEmail').value, adminEmail: $('cfgEmail').value, address: $('cfgAddress').value, deliveryEnabled: $('cfgDeliveryEnabled').value, pickupEnabled: $('cfgPickupEnabled').value, fixedDeliveryFee: $('cfgFixedDeliveryFee').value, deliveryFee: $('cfgFixedDeliveryFee').value, taxRate: $('cfgTaxRate').value, instagramUrl: $('cfgInstagram').value, heroImage: $('cfgHeroImage').value, aboutText: $('cfgAboutText').value, qrEnabled: $('cfgQrEnabled').value, licenseName: $('cfgLicenseName').value, licenseBy: $('cfgLicenseBy').value, publicBaseUrl: $('cfgPublicBaseUrl').value, trackingPage: $('cfgTrackingPage').value, locationUpdateSeconds: $('cfgLocationUpdateSeconds').value, deliveryFeeMode: 'fixed' } }); toast('Settings saved'); await refreshAll(); }
     function renderUsers(){ $('usersList').innerHTML = (adminData.users || []).map((user, index) => `<div class="card" style="padding:18px;"><strong>${RTApi.esc(user.name)}</strong><p class="section-sub">${RTApi.esc(user.email)} | ${RTApi.esc(user.role)} | active ${RTApi.esc(user.status || 'Yes')} | available ${RTApi.esc(user.available || 'Yes')} | failed attempts ${user.failedAttempts || 0}</p><div class="toolbar"><button class="btn secondary" type="button" onclick="editUserAt(${index})">Load / reset password</button><button class="btn dark" type="button" onclick="resetUserLock('${RTApi.esc(user.email)}')">Unlock</button></div></div>`).join('') || '<div class="empty">No users.</div>'; }
     function editUserAt(index){ const user = (adminData.users || [])[index]; if(!user) return; $('userName').value = user.name || ''; $('userEmail').value = user.email || ''; $('userPassword').value = ''; $('userRole').value = user.role || 'staff'; $('userStatus').value = user.status || 'Yes'; $('userAvailable').value = user.available || 'Yes'; showPanel('users'); }
     async function saveUser(){ const payload = { name: $('userName').value, email: $('userEmail').value, password: $('userPassword').value, role: $('userRole').value, status: $('userStatus').value, available: $('userAvailable').value }; await adminCall('saveUser', { user: payload }); toast('User saved'); await refreshAll(); }
@@ -600,14 +604,57 @@
       }
     }
 
+    function normalizeQrToken(value){
+      const raw = String(value || '').trim();
+      if(!raw) return '';
+      try {
+        const url = new URL(raw, location.href);
+        const token = url.searchParams.get('token') || url.searchParams.get('pickupToken') || url.searchParams.get('trackingToken');
+        if(token) return token.trim();
+      } catch(error) {}
+      const match = raw.match(/(?:token|pickupToken|trackingToken)=([^&#\s]+)/i);
+      if(match){
+        try { return decodeURIComponent(match[1]).trim(); }
+        catch(error) { return match[1].trim(); }
+      }
+      return raw;
+    }
+
+    function decodeQrWithCanvas(source){
+      if(typeof window.jsQR !== 'function') return [];
+      const width = Math.floor(source.videoWidth || source.naturalWidth || source.width || 0);
+      const height = Math.floor(source.videoHeight || source.naturalHeight || source.height || 0);
+      if(!width || !height) return [];
+      if(!qrCanvas) qrCanvas = document.createElement('canvas');
+      qrCanvas.width = width;
+      qrCanvas.height = height;
+      qrCanvasContext = qrCanvasContext || qrCanvas.getContext('2d', { willReadFrequently: true });
+      if(!qrCanvasContext) return [];
+      qrCanvasContext.drawImage(source, 0, 0, width, height);
+      const imageData = qrCanvasContext.getImageData(0, 0, width, height);
+      const code = window.jsQR(imageData.data, width, height, { inversionAttempts: 'attemptBoth' });
+      return code && code.data ? [{ rawValue: code.data }] : [];
+    }
+
+    async function detectQrCodes(source){
+      const detector = await getQrDetector();
+      if(detector){
+        try {
+          const nativeCodes = await detector.detect(source);
+          if(nativeCodes && nativeCodes.length) return nativeCodes;
+        } catch(error) {}
+      }
+      return decodeQrWithCanvas(source);
+    }
+
     async function handleQrCodes(codes, source){
       if(!codes || !codes.length){
-        setQrStatus('No QR code found in the ' + source + '. Paste the token manually or try a clearer image.', true);
+        setQrStatus('No QR code found in the ' + source + '. Keep the QR centered and try again.', true);
         return false;
       }
-      const token = String(codes[0].rawValue || '').trim();
+      const token = normalizeQrToken(codes[0].rawValue || '');
       if(!token){
-        setQrStatus('The QR was detected but no token was readable. Paste the token manually.', true);
+        setQrStatus('The QR was detected but no order token was readable.', true);
         return false;
       }
       $('pickupToken').value = token;
@@ -627,13 +674,13 @@
         setQrStatus('Camera is not available on this device. Paste the token or upload a QR photo.', true);
         return;
       }
-      const detector = await getQrDetector();
-      if(!detector){
-        setQrStatus('This browser cannot read QR codes automatically. Use Chrome/Edge, paste the token, or upload a QR photo.', true);
+      if(!('BarcodeDetector' in window) && typeof window.jsQR !== 'function'){
+        setQrStatus('The QR reader is still loading. Wait a moment and press Start camera again.', true);
         return;
       }
       try {
         const options = [
+          { video: { facingMode: { exact: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } } },
           { video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } } },
           { video: true }
         ];
@@ -647,8 +694,11 @@
           }
         }
         if(!qrStream) throw lastError || new Error('Camera unavailable');
-        $('qrVideo').srcObject = qrStream;
-        await $('qrVideo').play();
+        const video = $('qrVideo');
+        video.setAttribute('playsinline', '');
+        video.muted = true;
+        video.srcObject = qrStream;
+        await video.play();
         setQrStatus('Camera active. Hold the QR steady inside the video box.', false);
         scanQrFrame();
       } catch(error) {
@@ -662,12 +712,11 @@
       try {
         const video = $('qrVideo');
         if(video && video.readyState >= 2){
-          const detector = await getQrDetector();
-          const codes = detector ? await detector.detect(video) : [];
+          const codes = await detectQrCodes(video);
           if(codes && codes.length && await handleQrCodes(codes, 'camera')) return;
         }
       } catch(error) {
-        setQrStatus('Scanning is still active. If it does not read, paste the token or upload a QR photo.', false);
+        setQrStatus('Scanning is still active. Keep the QR inside the video box.', false);
       }
       qrScanTimer = requestAnimationFrame(scanQrFrame);
     }
@@ -685,18 +734,17 @@
 
     async function scanQrImage(file){
       if(!file) return;
-      const detector = await getQrDetector();
-      if(!detector){
-        setQrStatus('This browser cannot read QR images automatically. Paste the token manually.', true);
+      if(!('BarcodeDetector' in window) && typeof window.jsQR !== 'function'){
+        setQrStatus('The QR reader is still loading. Try again in a moment.', true);
         return;
       }
       try {
         const source = await qrImageSource(file);
-        const codes = await detector.detect(source);
+        const codes = await detectQrCodes(source);
         if(source.close) source.close();
         await handleQrCodes(codes, 'image');
       } catch(error) {
-        setQrStatus('Could not read that QR image. Try a clearer photo or paste the token manually.', true);
+        setQrStatus('Could not read that QR image. Try a clearer photo.', true);
       } finally {
         if($('qrImageInput')) $('qrImageInput').value = '';
       }
@@ -706,7 +754,7 @@
       if(qrScanTimer){ cancelAnimationFrame(qrScanTimer); qrScanTimer = null; }
       if(qrStream){ qrStream.getTracks().forEach(track => track.stop()); qrStream = null; }
       if($('qrVideo')) $('qrVideo').srcObject = null;
-      setQrStatus('Camera stopped. Paste the token or upload a QR photo if needed.', false);
+      setQrStatus('Camera stopped. Press Start camera to scan another order.', false);
     }
 
     function readProofImage(){
@@ -721,15 +769,35 @@
       });
     }
 
+    function isScannedOrderClosed(result){
+      const order = result && result.order ? result.order : {};
+      const qrStatus = String(result.qrStatus || order.qrStatus || '').toLowerCase();
+      const status = String(order.status || '').toLowerCase();
+      return Boolean(result.receiptOnly || result.completed || ['completed','used','closed','inactive'].indexOf(qrStatus) !== -1 || ['picked up','delivered','completed','finalized','entregada','finalizada'].indexOf(status) !== -1);
+    }
+
+    function renderScannedOrder(result){
+      const order = result && result.order ? result.order : {};
+      const closed = isScannedOrderClosed(result || {});
+      const items = (order.items || []).map(item => `<div class="info-row"><span>${RTApi.esc(item.quantity || 1)}x ${RTApi.esc(item.name || '')}</span><strong>${RTApi.money(item.lineTotal || 0)}</strong></div>`).join('') || '<p class="section-sub">No items available.</p>';
+      verifiedPickupOrder = closed ? null : order;
+      verifiedPickupType = result.tokenType || verifiedPickupType || '';
+      if($('completeScannedOrderBtn')) $('completeScannedOrderBtn').disabled = closed;
+      const badge = closed ? 'Receipt' : 'Ready to complete';
+      const note = closed ? 'This QR is closed because the order was already completed. Receipt shown for record.' : (verifiedPickupType === 'delivery' ? 'Complete delivery after handoff, or add a note/photo if left at a safe location.' : 'Complete pickup after checking the customer token.');
+      $('pickupResult').innerHTML = `<div class="card" style="padding:18px;"><span class="badge ${closed ? 'dark' : 'green'}">${badge}</span><strong style="display:block; margin-top:10px;">${RTApi.esc(order.orderId || '')}</strong><p>${RTApi.esc(order.customerName || '')} | ${RTApi.money(order.total || 0)}</p><p>Status: ${RTApi.esc(order.status || '')} | Payment: ${RTApi.esc(order.paymentStatus || '')}</p><p class="section-sub">QR: ${RTApi.esc(closed ? 'Completed' : (result.qrStatus || order.qrStatus || 'Active'))}${order.qrUsedAt ? ' | Closed: ' + RTApi.esc(order.qrUsedAt) : ''}</p><div class="info-list" style="margin-top:14px;">${items}</div><div class="totals"><div class="total-line"><span>Subtotal</span><strong>${RTApi.money(order.subtotal || 0)}</strong></div><div class="total-line"><span>Discount</span><strong>-${RTApi.money(order.discount || 0)}</strong></div><div class="total-line"><span>Tax</span><strong>${RTApi.money(order.tax || 0)}</strong></div><div class="total-line"><span>Delivery fee</span><strong>${RTApi.money(order.deliveryFee || 0)}</strong></div><div class="total-line"><span>Tip</span><strong>${RTApi.money(order.tip || 0)}</strong></div><div class="total-line grand"><span>Total</span><strong>${RTApi.money(order.total || 0)}</strong></div></div><p class="section-sub">${note}</p></div>`;
+    }
+
     async function verifyPickup(){
       try {
-        const result = await adminCall('verifyOrderToken', { token: $('pickupToken').value });
-        verifiedPickupOrder = result.order;
-        verifiedPickupType = result.tokenType || '';
-        $('pickupResult').innerHTML = `<div class="card" style="padding:18px;"><span class="badge green">${RTApi.esc(verifiedPickupType)}</span><strong style="display:block; margin-top:10px;">${RTApi.esc(result.order.orderId)}</strong><p>${RTApi.esc(result.order.customerName)} | ${RTApi.money(result.order.total)}</p><p>Status: ${RTApi.esc(result.order.status)} | Payment: ${RTApi.esc(result.order.paymentStatus || '')}</p><p class="section-sub">${verifiedPickupType === 'delivery' ? 'Complete delivery after handoff, or add a note/photo if left at a safe location.' : 'Complete pickup after checking the customer token.'}</p></div>`;
+        const token = normalizeQrToken($('pickupToken').value);
+        $('pickupToken').value = token;
+        const result = await adminCall('verifyOrderToken', { token });
+        renderScannedOrder(result);
       } catch(error) {
         verifiedPickupOrder = null;
         verifiedPickupType = '';
+        if($('completeScannedOrderBtn')) $('completeScannedOrderBtn').disabled = true;
         $('pickupResult').textContent = error.message || String(error);
       }
     }
@@ -737,13 +805,12 @@
     async function completePickup(){
       if(!verifiedPickupOrder){ toast('Verify token first'); return; }
       const proofImage = verifiedPickupType === 'delivery' ? await readProofImage() : null;
-      await adminCall('completeTokenOrder', { orderId: verifiedPickupOrder.orderId, token: $('pickupToken').value, proofNote: $('deliveryProofNote').value, proofImage });
-      verifiedPickupOrder = null;
-      verifiedPickupType = '';
-      $('pickupToken').value = '';
+      const token = normalizeQrToken($('pickupToken').value);
+      $('pickupToken').value = token;
+      const result = await adminCall('completeTokenOrder', { orderId: verifiedPickupOrder.orderId, token, proofNote: $('deliveryProofNote').value, proofImage });
       $('deliveryProofNote').value = '';
       $('deliveryProofPhoto').value = '';
-      $('pickupResult').innerHTML = '<div class="empty">Order completed and logged.</div>';
+      renderScannedOrder(result);
       toast('Order completed');
       await refreshAll();
     }
