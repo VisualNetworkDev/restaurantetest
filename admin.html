@@ -201,6 +201,8 @@
       <section id="panel-users" class="panel">
         <div class="card" style="padding:24px; margin-bottom:18px;">
           <h2 style="margin-top:0;">Create / update user</h2>
+          <input id="userId" type="hidden">
+          <input id="userOriginalEmail" type="hidden">
           <div class="split"><label class="field"><span>Name</span><input id="userName"></label><label class="field"><span>User / email</span><input id="userEmail"></label></div>
           <div class="split"><label class="field"><span>Password</span><input id="userPassword"></label><label class="field"><span>Role</span><select id="userRole" onchange="applyRolePermissionPreset()"><option>staff</option><option>admin</option><option>delivery</option><option>kitchen</option></select></label></div>
           <div class="split"><label class="field"><span>Active</span><select id="userStatus"><option>Yes</option><option>No</option></select></label><label class="field"><span>Available</span><select id="userAvailable"><option>Yes</option><option>No</option></select></label></div>
@@ -208,7 +210,8 @@
             <div class="section-sub">Section permissions control what this user can see and do in the management app.</div>
             <div id="permissionGrid" class="permission-grid"></div>
           </div>
-          <div class="toolbar"><button class="btn" type="button" onclick="saveUser()">Save user</button><button class="btn secondary" type="button" onclick="clearUserPermissions()">Remove permissions</button><button class="btn secondary" type="button" onclick="clearUserForm()">Clear form</button></div>
+          <div id="userFormStatus" class="section-sub" style="margin-top:10px;"></div>
+          <div class="toolbar"><button id="saveUserBtn" class="btn" type="button" onclick="saveUser()">Save user</button><button class="btn secondary" type="button" onclick="clearUserPermissions()">Remove permissions</button><button class="btn secondary" type="button" onclick="clearUserForm()">Clear form</button></div>
         </div>
         <div id="usersList" class="grid grid-3"></div>
       </section>
@@ -648,23 +651,39 @@
       return Array.from(new Set(values));
     }
     function clearUserPermissions(){ renderPermissionEditor(['dashboard']); }
+    function setUserBusy(isBusy, message){
+      const status = $('userFormStatus');
+      const saveButton = $('saveUserBtn');
+      if(status && message !== undefined) status.innerHTML = message ? '<span class="loading-inline"></span>' + RTApi.esc(message) : '';
+      if(saveButton){
+        saveButton.disabled = isBusy;
+        saveButton.textContent = isBusy ? 'Saving user...' : 'Save user';
+      }
+      document.querySelectorAll('#panel-users button').forEach(button => {
+        if(button !== saveButton) button.disabled = isBusy;
+      });
+    }
     function clearUserForm(){
-      ['userName','userEmail','userPassword'].forEach(id => $(id).value = '');
+      ['userId','userOriginalEmail','userName','userEmail','userPassword'].forEach(id => $(id).value = '');
       $('userRole').value = 'staff';
       $('userStatus').value = 'Yes';
       $('userAvailable').value = 'Yes';
+      $('userFormStatus').textContent = '';
       renderPermissionEditor();
     }
     function renderUsers(){
       $('usersList').innerHTML = (adminData.users || []).map((user, index) => {
         const permissions = Array.isArray(user.permissions) ? user.permissions : String(user.functions || '').split(',').filter(Boolean);
         const labels = permissions.map(key => (ADMIN_SECTIONS.find(section => section.key === key) || { label: key }).label);
-        return `<div class="card user-card"><strong>${RTApi.esc(user.name)}</strong><p class="section-sub">${RTApi.esc(user.email)} | ${RTApi.esc(user.role)} | active ${RTApi.esc(user.status || 'Yes')} | available ${RTApi.esc(user.available || 'Yes')} | failed attempts ${user.failedAttempts || 0}</p><div class="permission-tags">${labels.map(label => `<span class="badge dark">${RTApi.esc(label)}</span>`).join('')}</div><div class="toolbar"><button class="btn secondary" type="button" onclick="editUserAt(${index})">Edit permissions</button><button class="btn dark" type="button" onclick="resetUserLock('${RTApi.esc(user.email)}')">Unlock</button></div></div>`;
+        const isProtected = String(user.role || '').toLowerCase() === 'owner' || String(user.email || '').toLowerCase() === 'owner@example.com' || (currentUser && String(currentUser.email || '').toLowerCase() === String(user.email || '').toLowerCase());
+        return `<div class="card user-card"><strong>${RTApi.esc(user.name)}</strong><p class="section-sub">${RTApi.esc(user.email)} | ${RTApi.esc(user.role)} | active ${RTApi.esc(user.status || 'Yes')} | available ${RTApi.esc(user.available || 'Yes')} | failed attempts ${user.failedAttempts || 0}</p><div class="permission-tags">${labels.map(label => `<span class="badge dark">${RTApi.esc(label)}</span>`).join('')}</div><div class="toolbar"><button class="btn secondary" type="button" onclick="editUserAt(${index})">Edit permissions</button><button class="btn dark" type="button" onclick="resetUserLock('${RTApi.esc(user.email)}')">Unlock</button>${isProtected ? '' : `<button class="btn danger" type="button" onclick="deleteUserAt(${index})">Delete</button>`}</div></div>`;
       }).join('') || '<div class="empty">No users.</div>';
     }
     function editUserAt(index){
       const user = (adminData.users || [])[index];
       if(!user) return;
+      $('userId').value = user.userId || '';
+      $('userOriginalEmail').value = user.email || '';
       $('userName').value = user.name || '';
       $('userEmail').value = user.email || '';
       $('userPassword').value = '';
@@ -672,10 +691,51 @@
       $('userStatus').value = user.status || 'Yes';
       $('userAvailable').value = user.available || 'Yes';
       renderPermissionEditor(Array.isArray(user.permissions) ? user.permissions : String(user.functions || '').split(',').filter(Boolean));
+      $('userFormStatus').textContent = 'Editing ' + (user.email || user.name || 'user') + '.';
       showPanel('users');
     }
-    async function saveUser(){ const payload = { name: $('userName').value, email: $('userEmail').value, password: $('userPassword').value, role: $('userRole').value, status: $('userStatus').value, available: $('userAvailable').value, permissions: selectedUserPermissions() }; await adminCall('saveUser', { user: payload }); toast('User saved'); clearUserForm(); await refreshAll(); }
-    async function resetUserLock(email){ await adminCall('resetUserLock', { email }); toast('User unlocked'); await refreshAll(); }
+    async function saveUser(){
+      const payload = { userId: $('userId').value, originalEmail: $('userOriginalEmail').value, name: $('userName').value, email: $('userEmail').value, password: $('userPassword').value, role: $('userRole').value, status: $('userStatus').value, available: $('userAvailable').value, permissions: selectedUserPermissions() };
+      setUserBusy(true, payload.userId ? 'Updating user permissions...' : 'Creating user...');
+      try {
+        await adminCall('saveUser', { user: payload });
+        toast(payload.userId ? 'User updated' : 'User saved');
+        clearUserForm();
+        await refreshAll();
+      } catch(error) {
+        $('userFormStatus').textContent = error.message || String(error);
+        toast(error.message || String(error));
+      } finally {
+        setUserBusy(false);
+      }
+    }
+    async function deleteUserAt(index){
+      const user = (adminData.users || [])[index];
+      if(!user) return;
+      if(!confirm('Delete user ' + (user.email || user.name || '') + '? This cannot be undone.')) return;
+      setUserBusy(true, 'Deleting user...');
+      try {
+        await adminCall('deleteUser', { userId: user.userId, email: user.email });
+        toast('User deleted');
+        clearUserForm();
+        await refreshAll();
+      } catch(error) {
+        $('userFormStatus').textContent = error.message || String(error);
+        toast(error.message || String(error));
+      } finally {
+        setUserBusy(false);
+      }
+    }
+    async function resetUserLock(email){
+      setUserBusy(true, 'Unlocking user...');
+      try {
+        await adminCall('resetUserLock', { email });
+        toast('User unlocked');
+        await refreshAll();
+      } finally {
+        setUserBusy(false);
+      }
+    }
     function setQrStatus(message, isError){
       if($('qrCameraStatus')){
         $('qrCameraStatus').textContent = message;
